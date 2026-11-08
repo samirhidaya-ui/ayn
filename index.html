@@ -3478,6 +3478,52 @@ window.bellOpen=bellOpen=function(){
  $('bellp').hidden=false};
 $('bellbtn').onclick=window.bellOpen;
 })();
+</script>
+
+<script id="v133vox">
+(function(){
+const mk=(id,title,ph,photo)=>`<div class="card" id="${id}c"><h2>${title}</h2><button class="mic" id="${id}mic" type="button">🎙️ اضغط وتكلم</button><textarea id="${id}say" placeholder="${ph}" style="margin-top:8px"></textarea><div class="rbar"><button type="button" id="${id}go" class="alt">▶ نفّذ الكلام</button>${photo?`<button type="button" id="${id}ph">📷 صوّر فاتورة / صنف</button>`:''}</div><p id="${id}st" style="color:var(--mut);font-size:14px;margin:4px 0 0">اكتب أو سجّل صوتك، وبعدين اضغط «نفّذ».</p></div>`;
+const num=(t,re)=>{const m=t.match(re);return m?m[1]:''};
+const AR=x=>String(x||'').replace(/[أإآ]/g,'ا');
+/* ---- المستودع ---- */
+const stk=document.querySelector('#p-stock');
+if(stk&&!$('pwvc')){stk.insertAdjacentHTML('afterbegin',mk('pwv','🎙️ بحث وتصفية بالصوت أو الكتابة','مثال: دور على فلتر هواء · الأصناف تحت الحد · النافد · فلاتر',false).replace('id="pwvc"','id="pwvc"'));
+ const go=()=>{const raw=normD($('pwvsay').value).trim();if(!raw)return toast('اكتب أو سجّل الأول');let t=AR(raw),lf='',cf='';
+  if(/تحت الحد|ناقص|قارب/.test(t)){lf='low';t=t.replace(/تحت الحد( الادنى)?|ناقص|قارب/g,' ')}
+  if(/نافد|خلص|صفر/.test(t)){lf='zero';t=t.replace(/نافد|خلص|صفر/g,' ')}
+  for(const c of PCATS){const k=AR(c).split(' ')[0];if(t.includes(k)&&k.length>3){cf=c;t=t.replace(new RegExp(k,'g'),' ')}}
+  t=t.split(/\s+/).filter(w=>w&&!/^(?:دور|ابحث|هات|هاتلي|عايز|عاوز|اعرض|وريني|الاصناف|اصناف|صنف|على|عن|ال|لي)$/.test(w)).join(' ');
+  $('pwq').value=t;$('pwlf').value=lf;$('pwcf').value=cf;pwRender();$('pwvst').textContent='✅ تم: '+(t?'بحث «'+t+'»':'')+(lf?' · '+(lf==='low'?'تحت الحد':'نافد'):'')+(cf?' · '+cf:'')+' — راجع القائمة تحت';toast('✅ تم تطبيق البحث')};
+ $('pwvgo').onclick=go;bindMic('pwvmic','pwvsay',go)}
+/* ---- صنف جديد ---- */
+const nw=document.querySelector('#p-new');
+if(nw&&!$('pnvc')){nw.insertAdjacentHTML('afterbegin',mk('pnv','🎙️ صنف جديد بالصوت أو الكتابة','مثال: صنف جديد فلتر زيت مرسيدس كود 1234 فئة فلاتر سعره 45 رصيد 10 الحد الأدنى 3 الموقع الدمام',true));
+ const go=()=>{let t=AR(normD($('pnvsay').value)).replace(/\s+/g,' ').trim();if(!t)return toast('اكتب أو سجّل الأول');
+  const take=(re)=>{const m=t.match(re);if(m){t=t.replace(m[0],' ');return m[1].trim()}return ''};
+  const code=take(/(?:كود|رقم القطعه|رقم القطعة)\s+([A-Za-z0-9\-\/.]+)/),price=take(/(?:بسعر|سعره|سعرها|سعر)\s+(\d+(?:\.\d+)?)/),open=take(/(?:رصيد افتتاحي|رصيد|كميه|كمية|عدد)\s+(\d+(?:\.\d+)?)/),min=take(/(?:الحد الادنى|حد ادنى)\s+(\d+(?:\.\d+)?)/),loc=take(/(?:الموقع|مكانه|رف)\s+(.+?)(?=\s+(?:كود|سعر|بسعر|رصيد|الحد|فئه|فئة|وحده|وحدة|ملاحظات)|$)/),note=take(/ملاحظات\s+(.+)$/);
+  let cat='',unit='';for(const c of PCATS){const k=AR(c).split(' ')[0];if(new RegExp('(?:فئه|فئة|قسم)\\s+'+k).test(t)){cat=c;t=t.replace(new RegExp('(?:فئه|فئة|قسم)\\s+'+k+'\\S*','g'),' ')}}
+  for(const u of PUNITS){if(new RegExp('(?:وحده|وحدة|بال)\\s*'+AR(u)).test(t)){unit=u;t=t.replace(new RegExp('(?:وحده|وحدة|بال)\\s*'+AR(u),'g'),' ')}}
+  let name=t.replace(/(?:اضافه|اضافة|اضف|سجل|صنف جديد|صنف|جديد)/g,' ').replace(/\s+/g,' ').trim();
+  if(!name)return toast('⚠ ما فهمتش اسم الصنف');
+  if(!cat)cat=/فلتر|فلاتر/.test(name)?'فلاتر':/زيت|شحم/.test(name)?'زيوت وسوائل':/بطاري|كهرب/.test(name)?'كهرباء':'قطع غيار';
+  $('pnname').value=name;if(code)$('pncode').value=code;$('pncat').value=cat;if(unit)$('pnunit').value=unit;else if(/^زيت/.test(name))$('pnunit').value='لتر';if(min)$('pnmin').value=min;if(price)$('pnprice').value=price;if(open)$('pnopen').value=open;if(loc)$('pnloc').value=loc;if(note)$('pnnt').value=note;
+  $('pnvst').textContent='✅ اتعبّت الخانات تحت. راجعها واضغط «حفظ الصنف».';toast('✅ اتعبّت الخانات — راجع واضغط حفظ الصنف');$('pnname').scrollIntoView({block:'center'})};
+ $('pnvgo').onclick=go;bindMic('pnvmic','pnvsay',go);
+ $('pnvph').onclick=()=>{const b=document.querySelector('#ptabs [data-p=mv]');if(b)b.click();setTimeout(()=>{const f=$('pmscan');if(f)f.click()},300)}}
+/* ---- التقرير ---- */
+const rp=document.querySelector('#p-rep');
+if(rp&&!$('prvc')){rp.insertAdjacentHTML('afterbegin',mk('prv','🎙️ اطلب التقرير بالصوت أو الكتابة','مثال: كشف أرصدة الفلاتر · الأصناف تحت الحد إكسل · حركة المستودع من 2026-11-01 إلى 2026-11-08 PDF',false));
+ const go=()=>{let t=AR(normD($('prvsay').value));if(!t.trim())return toast('اكتب أو سجّل الأول');
+  if(/حركه|حركة|وارد|صرف/.test(t))$('prtype').value='moves';else if(/تحت الحد|ناقص/.test(t))$('prtype').value='low';else $('prtype').value='stock';
+  let cat='';for(const c of PCATS){const k=AR(c).split(' ')[0];if(k.length>3&&t.includes(k))cat=c}$('prcat').value=cat;
+  try{const ds=wDatesIn(t).map(x=>x.v).sort();if(ds[0])$('prfrom').value=ds[0];if(ds[1])$('prto').value=ds[ds.length-1]}catch(_){}
+  if(/اسود|ابيض واسود/.test(t))$('prmode').value='b';
+  const want=/excel|اكسل|إكسل/i.test(t)?'x':/pdf|بي دي اف|طباعه|طباعة|اطبع/i.test(t)?'p':'';
+  $('prvst').textContent='✅ اتظبطت خانات التقرير تحت'+(want?' — جاري التجهيز':'. اضغط PDF أو Excel');
+  if(typeof prRender==='function')try{prRender()}catch(_){}
+  toast('✅ اتظبط التقرير');if(want)setTimeout(()=>$(want==='x'?'prxls':'prpdf').click(),300)};
+ $('prvgo').onclick=go;bindMic('prvmic','prvsay',go)}
+})();
 
 /* ===== settings, backup, restore ===== */
 (function(){
