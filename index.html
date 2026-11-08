@@ -2827,10 +2827,16 @@ function qcRepRows(d){try{const st=dStat(d),rows=[['عهدة / مصروف الط
 function qcDrvCard(d,rep){const v=typeof dVeh==='function'?dVeh(d):'';
  const rows=[['الاسم',d.name],['اللوحة',d.plate],['السيارة',v],['الجوال',d.phone],['الجنسية',d.nat],['الهوية/الإقامة',d.idn||d.iqama||d.nid],['ملاحظات',d.note||d.notes]].filter(x=>x[1]).concat(rep?qcRepRows(d):[]);
  return `<div class="qdc"><div class="qdh"><i class="av">${esc((d.name||'?').trim().charAt(0))}</i><b>${esc(d.name)}</b>${dCont(d)}</div>${rows.map(r=>`<div class="dr"><span>${r[0]}</span><strong>${esc(String(r[1]))}</strong></div>`).join('')}</div>`}
+function qcVehCard(v){const d=items.find(x=>x.kind==='driver-rec'&&nPlate(x.plate||'')===nPlate(v.plate||''));
+ const rows=[['اللوحة',v.plate],['الماركة والموديل',[v.brand,v.model,v.year].filter(Boolean).join(' ')],['النوع',v.vtype],['اللون',v.color],['رقم الهيكل',v.chassis],['نوع التسجيل',v.regtype],['انتهاء الاستمارة',v.lic],['الفحص الدوري',[v.insp,v.inspst].filter(Boolean).join(' — ')],['التأمين',v.insst],['المالك',v.owner],['السائق',d?d.name:''],['جوال السائق',d?d.phone:'']].filter(x=>x[1]);
+ return `<div class="qdc"><div class="qdh"><i class="av">🚛</i><b>${esc(v.plate)}</b></div>${rows.map(r=>`<div class="dr"><span>${r[0]}</span><strong>${esc(String(r[1]))}</strong></div>`).join('')}</div>`}
 async function qcStopped(t){
  if(!t){$('qcst').textContent='ما التقطتش أي كلام. اضغط «تحدث الآن» وجرّب تاني.';return}
  if(qcMode==='voice'){const m=t.match(/^\s*(?:افتح|روح(?:\s+على|\s+إلى)?|وديني(?:\s+على)?)\s+(.+)$/);if(m){const map=[['الملاحظات','n'],['الوثائق','w'],['الصيانة','m'],['قطع الغيار','p'],['الكفرات','t'],['السائقين','d'],['السائقون','d'],['تمام الوقوف','y'],['أعطال الطريق','r'],['الأعطال','r'],['السطحات','f'],['العهدة','c'],['التأمين','i'],['التقارير','x']];const hit=map.find(x=>m[1].includes(x[0]));if(hit){qcClose();showMod(hit[1]);return}}}
- if(qcMode==='voice'){const qq=qcQuery(t);if(qq){$('qcst').textContent='';$('qctx').readOnly=false;$('qcres').innerHTML=qq.hits.length?`<div class="qcok">✓ لقيت ${qq.hits.length>1?qq.hits.length+' سائقين':'السائق'} — الساعة ${hmT(Date.now())}</div>`+qq.hits.map(d=>qcDrvCard(d,qq.rep)).join(''):'<div class="qcok warn">⚠ ما لقيتش سائق بالاسم أو الرقم ده. جرّب تقول الاسم أو رقم اللوحة تاني.</div>';$('qcres').hidden=false;$('qcdone').hidden=false;$('qcsave').style.display='none';return}}
+ if(qcMode!=='photo'&&(qcMode==='voice'||/(?<!\d)\d{3,4}(?!\d)/.test(spk(normD(t))))){const qq=qcQuery(t);if(qq){const dg=((spk(normD(t)).match(/(?<!\d)(\d{3,4})(?!\d)/)||[])[1]||''),vh=dg?items.filter(x=>x.kind==='veh'&&nPlate(x.plate||'').replace(/\D/g,'')===dg):[];$('qcst').textContent='';$('qctx').readOnly=false;
+  const got=qq.hits.length||vh.length;
+  $('qcres').innerHTML=got?`<div class="qcok">✓ لقيت ${vh.length?'بيانات المركبة':''}${vh.length&&qq.hits.length?' + ':''}${qq.hits.length?(qq.hits.length>1?qq.hits.length+' سائقين':'السائق'):''} — الساعة ${hmT(Date.now())}</div>`+vh.map(qcVehCard).join('')+qq.hits.map(d=>qcDrvCard(d,qq.rep)).join(''):`<div class="qcok warn">⚠ ما لقيتش ${dg?'سائق ولا مركبة بالرقم '+dg:'سائق بالاسم أو الرقم ده'}. اتأكد من الرقم وجرّب تاني.</div>`;
+  $('qcres').hidden=false;$('qcdone').hidden=false;$('qcsave').style.display='none';return}}
  const cl=qcMode==='photo'?{k:'note'}:qcClassify(t);let msg='',ok=true,dest='الملاحظات';
  $('qcst').textContent='جاري التوزيع…';
  let askD=null;
