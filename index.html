@@ -179,7 +179,7 @@ body[data-mod="q"] [data-mm]:not([data-mm~="q"]){display:none!important}
 #stp #stx{position:sticky!important;top:0;float:left;z-index:6;margin:-4px 0 0 -2px;box-shadow:0 3px 10px rgba(0,0,0,.25)}
 #stp .rjump{display:block;width:100%;margin:0 0 6px;padding:9px;border-radius:12px;background:#fff7f5!important;color:#b3261e!important;border:1.5px solid #e8a29b!important;font-weight:800;font-size:14px}
 </style>
-<style id="v196boot">html{background:#062a1c}#ayn2 .a2k{font:700 17px "Readex Pro",sans-serif!important;color:#f3dc9a!important;letter-spacing:1px;animation:a2k 1.6s ease-in-out infinite}#ayn2 .a2k:not(:empty){padding:10px 26px;border:1.5px solid rgba(212,165,64,.7);border-radius:30px;background:rgba(0,0,0,.18);width:max-content;left:50%!important;right:auto!important;transform:translateX(-50%)}@keyframes a2k{0%,100%{opacity:.55}50%{opacity:1}}</style>
+<style id="v196boot">html{background:#062a1c}#ayn2 .a2k{font:700 17px "Readex Pro",sans-serif!important;color:#f3dc9a!important;letter-spacing:1px;animation:a2k 1.6s ease-in-out infinite}body:has(#ayn2:not(.out)) .toast{display:none!important}#ayn2 .a2k:not(:empty){cursor:pointer;padding:10px 26px;border:1.5px solid rgba(212,165,64,.7);border-radius:30px;background:rgba(0,0,0,.18);width:max-content;left:50%!important;right:auto!important;transform:translateX(-50%)}@keyframes a2k{0%,100%{opacity:.55}50%{opacity:1}}</style>
 </head><body>
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -7299,7 +7299,7 @@ function tick(){if(done)return;const t=Date.now()-T0;
  if(d.classList.contains('lg')){finish();return}
  d.querySelector('.a2k').textContent=t>3600?'اضغط للدخول':''}
 setInterval(tick,200);
-d.addEventListener('click',()=>{if(!loginOn()&&Date.now()-T0>1500)finish()});
+d.addEventListener('click',e=>{if(!loginOn()&&e.target.closest('.a2k')&&d.querySelector('.a2k').textContent)finish()});
 const z=document.getElementById('ayn0');if(z)setTimeout(()=>z.remove(),60);
 })();
 </script>
