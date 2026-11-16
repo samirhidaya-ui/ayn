@@ -376,7 +376,7 @@ const SB='https://xheznardudlbyarpdheq.supabase.co';
 const KEY='sb_publishable_HfeKs1-YGla0ROEcYK4k-w_heprkgij';
 const DOM='@ayn.app';
 const KINDS=['wop','veh','driver-rec','part','radarcfg'];
-const ALIAS={'صبحي':'m.sobhy','m.صبحي':'m.sobhy','م.صبحي':'m.sobhy','محمد صبحي':'m.sobhy','m صبحي':'m.sobhy','sobhi':'m.sobhy','sobhy':'m.sobhy'};
+const ALIAS={'sobhy':'m.sobhy','samir':'samir'};
 const $=id=>document.getElementById(id);
 const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const LS=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v)}catch(_){}return null};
@@ -464,10 +464,10 @@ function ago(ts){const m=Math.round((Date.now()-ts)/60000);if(m<1)return'دلو�
 const itemsTxt=o=>(o.items||[]).map(x=>(x.q?x.q+(x.u?' '+x.u:'')+' ':'')+x.n).join('، ');
 const workTxt=o=>(o.work||[]).join('، ');
 /* duplicates: same plate + same part within 36h, or same work within 36h */
-function dupMap(){const m={};const a=ops().filter(o=>(o.type==='out'||o.type==='svc')).sort((x,y)=>x.ts-y.ts);
+function dupMap(){const m={};const a=ops().filter(o=>(o.type==='out'||o.type==='pw'||o.type==='svc')).sort((x,y)=>x.ts-y.ts);
  for(let i=0;i<a.length;i++){const o=a[i];const d=digits(o.plate);if(!d)continue;
   const keys=(o.items||[]).map(x=>'i:'+norm(x.n)).concat((o.work||[]).map(w=>'w:'+norm(w)));
-  for(let j=0;j<i;j++){const p=a[j];if(digits(p.plate)!==d||o.ts-p.ts>36*3600e3||m[p.id])continue;
+  for(let j=0;j<i;j++){const p=a[j];if(p.type!==o.type||digits(p.plate)!==d||o.ts-p.ts>36*3600e3||m[p.id])continue;
    const pk=(p.items||[]).map(x=>'i:'+norm(x.n)).concat((p.work||[]).map(w=>'w:'+norm(w)));
    if(keys.some(k=>pk.includes(k))){m[o.id]=p.id;break}}}
  return m}
@@ -484,7 +484,9 @@ function findPlate(t){const k=knownPlate(t);if(k)return k;const n=nd(t);
  let m=n.match(/(?:عربي[هة]|سيار[هة]|شاحن[هة]|سطح[هة]|ناقل[هة]|لوح[هة]|نمر[هة]|رقم)\s*([ء-ي]\s?){0,3}\s*(\d{3,4})/);if(m)return m[2];
  m=n.match(/(?:^|\s)(\d{4})(?:\s|$|[،,.])/);if(m)return m[1];return''}
 const RSEP=/\s*(?:اللي بعده|اللى بعده|اللي بعدها|اللى بعدها|اللي بعد كده|اللي بعد كدة|السيارة التالية|السياره التاليه)\s*/g;
-function splitClauses(t){return nd(t).replace(/\s+/g,' ').replace(RSEP,' ، § ، ').split(/[،,.؛;\n]+|\s(?:وبعدين|بعدين|وكمان|كمان|وبرضو|برضو)\s/).map(s=>s.trim()).filter(Boolean)}
+const SPKD={'صفر':0,'واحد':1,'واحده':1,'اتنين':2,'اثنين':2,'تنين':2,'تلاته':3,'ثلاثه':3,'تلات':3,'اربعه':4,'اربع':4,'خمسه':5,'خمس':5,'سته':6,'ست':6,'سبعه':7,'سبع':7,'تمانيه':8,'ثمانيه':8,'تمان':8,'تسعه':9,'تسع':9};
+function spokenNum(t){const w=String(t).split(' ');const o=[];const key=x=>{x=String(x).replace(/[إأآ]/g,'ا').replace(/ة/g,'ه');return SPKD[x]===undefined&&/^و/.test(x)&&SPKD[x.slice(1)]!==undefined?x.slice(1):x};for(let i=0;i<w.length;){let j=i,d='';while(j<w.length&&(SPKD[key(w[j])]!==undefined||/^\d$/.test(w[j]))){d+=SPKD[key(w[j])]!==undefined?SPKD[key(w[j])]:w[j];j++}if(j-i>=3){o.push(d);i=j}else{o.push(w[i]);i++}}return o.join(' ')}
+function splitClauses(t){return spokenNum(nd(t).replace(/\s+/g,' ').trim()).replace(RSEP,' ، § ، ').split(/[،,.؛;\n]+|\s(?:وبعدين|بعدين|وكمان|كمان|وبرضو|برضو)\s/).map(s=>s.trim()).filter(Boolean)}
 function partsOf(c){const out=[];let s=' '+norm(c)+' ';
  const re=/(?:^|\s)و?(\d+(?:\.\d+)?|واحد|واحده|اتنين|اثنين|تنين|جوز|تلاته|ثلاثه|تلات|ثلاث|اربعه|اربع|خمسه|خمس|سته|ست|سبعه|سبع|تمانيه|ثمانيه|تمن|تسعه|تسع|عشره|عشر|نص|ربع)\s+(.+?)(?=\s(?:و\s?)?(?:\d+(?:\.\d+)?|واحد|اتنين|اثنين|تلاته|ثلاثه|اربعه|خمسه|سته|سبعه|تمانيه|ثمانيه|تسعه|عشره|نص|ربع)\s|\s(?:و)?(?:لحام|بنشر|ترصيص|غسيل|تشحيم|فحص|ضبط|ظبط|صلحنا|اصلاح|تصليح|خراطه|سمكره)|\sو(?:عملنا|غيرنا|ركبنا)|$)/g;
  let m;while((m=re.exec(s))){let q=/^\d/.test(m[1])?+m[1]:NUMW[m[1]];let rest=m[2].trim().replace(/^و/,'');let u='';
@@ -492,9 +494,9 @@ function partsOf(c){const out=[];let s=' '+norm(c)+' ';
   rest=rest.split(' ').filter(x=>!FILL.has(x)&&!OUTW.includes(x)).join(' ').trim();
   if(/^\d{3,}$/.test(String(m[1]))){continue}
   if(rest&&rest.length>1&&!/^\d+$/.test(rest))out.push({n:rest,q:q||1,u})}
- if(!out.length){const ws=s.trim().split(' ');const vi=ws.findIndex(x=>OUTW.includes(x));if(vi>=0){const tail=[];for(const x of ws.slice(vi+1)){if(SVCW.some(v=>x.indexOf(v)===0)||/^\d{3,}$/.test(x)||x==='وعملنا')break;tail.push(x)}const nm=tail.filter(x=>!FILL.has(x)).join(' ').replace(/^و/,'').trim();if(nm.length>1)out.push({n:nm,q:1,u:''})}}
+ if(!out.length){const ws=s.trim().split(' ');const vi=ws.findIndex(x=>OUTW.includes(x));if(vi>=0){const tail=[];for(const x of ws.slice(vi+1)){if((SVCW.some(v=>x.indexOf(v)===0)&&!(x==='هوا'&&/^فلت/.test(tail[tail.length-1]||'')))||/^\d{3,}$/.test(x)||x==='وعملنا')break;tail.push(x)}const nm=tail.filter(x=>!FILL.has(x)).join(' ').replace(/^و/,'').trim();if(nm.length>1)out.push({n:nm,q:1,u:''})}}
  return out}
-function workOf(c){const n=norm(c);const ws=[];SVCW.forEach(w=>{const i=n.indexOf(w);if(i>=0){let seg=n.slice(i).split(/\s(?:و\s?\d|وصرف|و\d)/)[0].split(' ').slice(0,4).filter(x=>!FILL.has(x)).join(' ');if(!ws.some(x=>x.indexOf(w)>=0||seg.indexOf(x)>=0))ws.push(seg)}});return ws}
+function workOf(c){const n=norm(c);const ws=[];SVCW.forEach(w=>{const i=n.indexOf(w);if(w==='هوا'&&/فلتر\s*(?:ال)?هوا/.test(n)&&!/(نفخ|ظبط\S*\s+(?:ال)?هوا|هوا\s+(?:ال)?كفر)/.test(n))return;if(i>=0){let seg=n.slice(i).split(/\s(?:و\s?\d|وصرف|و\d)/)[0].split(' ').slice(0,4).filter(x=>!FILL.has(x)).join(' ');if(!ws.some(x=>x.indexOf(w)>=0||seg.indexOf(x)>=0))ws.push(seg)}});return ws}
 const SHORTW=/(خلص|خلصت|خلصان|ناقص|ناقصه|نواقص|مفيش|ما فيش|مافيش|محتاجين|محتاجينه|نحتاج|محتاج نشتري|عايزين نشتري|لازم نشتري|اطلبوا|اطلب|نفد|نفذ)/;
 const NOTEW=/^(ملاحظه|ملاحظة|لاحظت|خلي بالك|انتبه|تنبيه)|تحتاج|محتاج[هة]?\s|محتاجين|عايز[هة]?\s|قرب يخلص|قرّب يخلص|محتاج تغيير|محتاجه تغيير|بيصفر|بيسرب|فيه صوت|فيها صوت/;
 function localParse(text){const cl=splitClauses(text);let plate='';const ents=[];const wn=[];
@@ -709,11 +711,27 @@ function openReport(){if(!perm('preview')){toast('🔒 التقارير محتا
   $('rr').querySelectorAll('button').forEach(b=>b.onclick=()=>{RP.range=b.dataset.r;draw()});
   if($('rpdf'))$('rpdf').onclick=()=>makePDF(false);if($('rwa'))$('rwa').onclick=()=>makePDF(true);if($('rpr'))$('rpr').onclick=()=>print()};draw()}
 function loadLib(src){return new Promise((res,rej)=>{if(document.querySelector('script[src="'+src+'"]')){setTimeout(res,50);return}const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s)})}
-async function makePDF(wa){toast('بجهّز الملف…',6000);
+function pickSig(cb){let d=document.getElementById('rsig');if(d)d.remove();d=document.createElement('div');d.id='rsig';
+ d.style.cssText='position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center';
+ const bs='display:block;width:100%;margin:8px 0;padding:16px;border-radius:16px;border:0;font:800 17px inherit;color:#fff;box-shadow:0 5px 0 rgba(0,0,0,.35)';
+ d.innerHTML='<div style="width:100%;max-width:480px;background:#0d2030;border-radius:22px 22px 0 0;padding:18px 16px 26px;border-top:2px solid #25d4ff"><b style="display:block;text-align:center;font-size:18px;color:#7fe3ff;margin-bottom:6px">✍️ التوقيع في الملف</b>'+
+  '<button data-s="blank" style="'+bs+';background:linear-gradient(180deg,#3aa0ff,#1559c4)">📝 مكان توقيع فاضي</button><button data-s="none" style="'+bs+';background:linear-gradient(180deg,#ffb53d,#c87406)">بدون توقيع</button><button data-s="" style="'+bs+';background:#23384a;box-shadow:none">إلغاء</button></div>';
+ d.onclick=e=>{const b=e.target.closest('[data-s]');if(e.target===d){d.remove();return}if(!b)return;d.remove();if(b.dataset.s)cb(b.dataset.s)};document.body.appendChild(d)}
+function pdfFit(cv){const P=new jspdf.jsPDF({unit:'mm',format:'a4'});const PW=210,PH=297,M=8,W=PW-2*M,AH=PH-2*M,k=W/cv.width,pageH=Math.floor(AH/k);
+ if(cv.height<=pageH*1.5){let w=W,h=cv.height*k;if(h>AH){w=W*AH/h;h=AH}P.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',(PW-w)/2,M,w,h);return P}
+ const ctx=cv.getContext('2d');let y=0,pg=0;
+ while(y<cv.height-2){let e=Math.min(y+pageH,cv.height);
+  if(e<cv.height){const z=Math.floor(pageH*.2),y0=e-z,d=ctx.getImageData(0,y0,cv.width,z).data,st=Math.max(1,Math.floor(cv.width/400));let best=e,bv=Infinity;
+   for(let r=z-1;r>=0;r--){let a=0,a2=0,n=0;for(let x=0;x<cv.width;x+=st){const i=(r*cv.width+x)*4;const L=d[i]*.3+d[i+1]*.59+d[i+2]*.11;a+=L;a2+=L*L;n++}const v=a2/n-(a/n)*(a/n);if(v<bv-.5){bv=v;best=y0+r}if(v<1)break}
+   e=best}
+  const h=e-y;const c=document.createElement('canvas');c.width=cv.width;c.height=h;c.getContext('2d').drawImage(cv,0,y,cv.width,h,0,0,cv.width,h);if(pg)P.addPage();P.addImage(c.toDataURL('image/jpeg',.9),'JPEG',M,M,W,h*k);y=e;pg++}
+ return P}
+function makePDF(wa){pickSig(sig=>makePDF2(wa,sig))}
+async function makePDF2(wa,sig){toast('بجهّز الملف…',6000);
  try{if(!window.html2canvas)await loadLib('https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js');if(!window.jspdf)await loadLib('https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js')}catch(_){toast('محتاج إنترنت لعمل PDF — استخدم طباعة');return}
- const el=document.createElement('div');el.className='rpx2';el.innerHTML=repHTML();el.style.cssText='position:fixed;left:-3000px;top:0;width:900px;background:#fff;color:#1f2e2d;padding:0;direction:rtl;border-radius:10px;overflow:hidden';document.body.appendChild(el);
+ const el=document.createElement('div');el.className='rpx2';el.innerHTML=repHTML();el.style.cssText='position:fixed;left:-3000px;top:0;width:900px;background:#fff;color:#1f2e2d;padding:0;direction:rtl;border-radius:10px;overflow:hidden';document.body.appendChild(el);if(sig==='none')el.querySelectorAll('.sig').forEach(x=>x.remove());
  let cv;try{cv=await html2canvas(el,{scale:2,backgroundColor:'#ffffff'})}finally{el.remove()}
- const pdf=new jspdf.jsPDF({unit:'mm',format:'a4'});let W=200,H=cv.height*W/cv.width;if(H>285){W=W*285/H;H=285}pdf.addImage(cv.toDataURL('image/jpeg',.92),'JPEG',(210-W)/2,6,W,H);
+ const pdf=pdfFit(cv);
  const name='RADAR - التقرير اليومي - '+new Date().toISOString().slice(0,10)+'.pdf';const blob=pdf.output('blob');const file=new File([blob],name,{type:'application/pdf'});
  window.__radarLastPDF=blob;
  if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file]});return}catch(_){return}}
@@ -759,11 +777,11 @@ $('bmenu').onclick=()=>{sheet('<h3>القائمة <button onclick="rClose()">×<
  $('mlo').onclick=async()=>{await qSync();if(st.pend.size&&!confirm('فيه '+st.pend.size+' تسجيل لسه ما اترفعش. هيفضلوا على الجهاز. تخرج؟'))return;sSet(null);st.logged=false;closeSheet();$('app').hidden=true;$('intro').classList.remove('out');showLogin('')}};
 
 /* ---------- login & boot ---------- */
-function mapUser(u){u=u.trim();const n=norm(u).replace(/\s+/g,' ');for(const k in ALIAS)if(norm(k)===n)return ALIAS[k];return u.toLowerCase().replace(/\s+/g,'.')}
+function mapUser(u){const n=String(u||'').trim().toLowerCase();return Object.prototype.hasOwnProperty.call(ALIAS,n)?ALIAS[n]:null}
 function showLogin(m){$('intro').classList.add('lg');$('stage').style.transform='translateY(-'+Math.round(innerHeight*.17)+'px) scale('+fit(.78)+')';$('lmsg').textContent=m||'';$('skip').textContent='';if(LS('radar-lastu'))$('lu').value=LS('radar-lastu')}
 function fit(k){return Math.min(1,(innerHeight*(k||1))/720,(innerWidth)/360)}
 async function doLogin(){const raw=$('lu').value,p=$('lp').value;if(!raw||!p){$('lmsg').textContent='اكتب الاسم وكلمة السر';return}
- const u=mapUser(raw);const email=u.indexOf('@')>0?u:u+DOM;$('lgo').disabled=true;$('lmsg').textContent='بدخّلك…';
+ const u=mapUser(raw);if(!u){$('lmsg').textContent='اسم المستخدم غلط — اكتب sobhy أو samir';return}const email=u+DOM;$('lgo').disabled=true;$('lmsg').textContent='بدخّلك…';
  try{let r;try{r=await fetch(SB+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'content-type':'application/json'},body:JSON.stringify({email,password:p})})}catch(_){throw{m:'مفيش إنترنت — أول دخول محتاج نت'}}
   if(!r.ok)throw{m:(r.status===400||r.status===401||r.status===422)?'الاسم أو كلمة السر غلط':'مش قادر أدخل دلوقتي، جرّب كمان شوية'};
   const j=await r.json();const s={access:j.access_token,refresh:j.refresh_token,exp:Date.now()+(j.expires_in||3600)*1000,uid:j.user&&j.user.id,user:u};sSet(s);
