@@ -908,7 +908,8 @@ window.__rqEnv={items:()=>window.__radar.items(),put:o=>window.__radar.put(o),
 })();
 
 </script>
-<!--RADARV:3-->
+<script>(function(){const CUR=4;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
+<!--RADARV:4-->
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})</script>
 </body>
 </html>
