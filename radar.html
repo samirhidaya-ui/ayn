@@ -477,8 +477,8 @@ window.__radarDup=dupMap;
 const NUMW={'واحد':1,'واحده':1,'وحده':1,'اتنين':2,'اثنين':2,'اثنان':2,'تنين':2,'جوز':2,'تلاته':3,'ثلاثه':3,'تلات':3,'ثلاث':3,'اربعه':4,'اربع':4,'خمسه':5,'خمس':5,'سته':6,'ست':6,'سبعه':7,'سبع':7,'تمانيه':8,'ثمانيه':8,'تمن':8,'تسعه':9,'تسع':9,'عشره':10,'عشر':10,'نص':.5,'ربع':.25};
 const UNITS=['لتر','لترات','حبه','حبات','قطعه','قطع','كرتون','جالون','جالونات','متر','علبه','طقم','كيلو','سطل','برميل','كفر','كفرات'];
 const OUTW=['صرف','صرفنا','صرفت','اصرف','اديته','اديناه','ادينا','خد','اخد','سحب','سحبنا','طلع','طلعنا','ركبنا','ركبت','غيرنا','غيرت','حطينا','حطيت','بدلنا','بدلت'];
-const SVCW=['لحام','لحمنا','بنشر','بنشرجي','ترصيص','رصصنا','هوا','نفخ','غسيل','غسلنا','كهربا','كهرباء','تشحيم','شحمنا','فحص','فحصنا','ضبط','ظبط','ظبطنا','صلحنا','اصلاح','تصليح','صيانه','خراطه','سمكره','دهان','رش','ميزان','ترصيص','فك','ربط','شد','تغيير زيت'];
-const FILL=new Set(['و','في','على','علي','عن','من','ال','العربيه','عربيه','السياره','سياره','الشاحنه','شاحنه','السطحه','سطحه','الناقله','ناقله','رقم','لوحه','نمره','النمره','كمان','برضو','بعدين','وبعدين','يعني','بس','عملنا','عملت','اتعمل','اتعملت','له','لها','ليها','ليه','دي','ده','النهارده','الصبح','تمام','خلاص']);
+const SVCW=['تركيب','ركبنا','ركبت','ركبناله','اتركب','اتركبت','فكينا','فكيناها','نسافه','عتبه','سمكره','سمكرنا','دهنا','قصينا','لحام','لحمنا','بنشر','بنشرجي','ترصيص','رصصنا','هوا','نفخ','غسيل','غسلنا','كهربا','كهرباء','تشحيم','شحمنا','فحص','فحصنا','ضبط','ظبط','ظبطنا','صلحنا','اصلاح','تصليح','صيانه','خراطه','سمكره','دهان','رش','ميزان','ترصيص','فك','ربط','شد','تغيير زيت'];
+const FILL=new Set(['اللي','الي','اللى','هي','هيا','هو','هوه','بتاع','بتاعه','بتاعت','و','في','على','علي','عن','من','ال','العربيه','عربيه','السياره','سياره','الشاحنه','شاحنه','السطحه','سطحه','الناقله','ناقله','رقم','لوحه','نمره','النمره','كمان','برضو','بعدين','وبعدين','يعني','بس','عملنا','عملت','اتعمل','اتعملت','له','لها','ليها','ليه','دي','ده','النهارده','الصبح','تمام','خلاص']);
 function knownPlate(t){const n=nd(t);let best='';vehs().forEach(v=>{const d=digits(v.plate);if(d.length>=3&&new RegExp('(^|\\D)'+d+'(\\D|$)').test(n)&&d.length>best.length)best=v.plate});return best}
 function findPlate(t){const k=knownPlate(t);if(k)return k;const n=nd(t);
  let m=n.match(/(?:عربي[هة]|سيار[هة]|شاحن[هة]|سطح[هة]|ناقل[هة]|لوح[هة]|نمر[هة]|رقم)\s*([ء-ي]\s?){0,3}\s*(\d{3,4})/);if(m)return m[2];
@@ -496,19 +496,20 @@ function partsOf(c){const out=[];let s=' '+norm(c)+' ';
   if(rest&&rest.length>1&&!/^\d+$/.test(rest))out.push({n:rest,q:q||1,u})}
  if(!out.length){const ws=s.trim().split(' ');const vi=ws.findIndex(x=>OUTW.includes(x));if(vi>=0){const tail=[];for(const x of ws.slice(vi+1)){if((SVCW.some(v=>x.indexOf(v)===0)&&!(x==='هوا'&&/^فلت/.test(tail[tail.length-1]||'')))||/^\d{3,}$/.test(x)||x==='وعملنا')break;tail.push(x)}const nm=tail.filter(x=>!FILL.has(x)).join(' ').replace(/^و/,'').trim();if(nm.length>1)out.push({n:nm,q:1,u:''})}}
  return out}
-function workOf(c){const n=norm(c);const ws=[];SVCW.forEach(w=>{const i=n.indexOf(w);if(w==='هوا'&&/فلتر\s*(?:ال)?هوا/.test(n)&&!/(نفخ|ظبط\S*\s+(?:ال)?هوا|هوا\s+(?:ال)?كفر)/.test(n))return;if(i>=0){let seg=n.slice(i).split(/\s(?:و\s?\d|وصرف|و\d)/)[0].split(' ').slice(0,4).filter(x=>!FILL.has(x)).join(' ');if(!ws.some(x=>x.indexOf(w)>=0||seg.indexOf(x)>=0))ws.push(seg)}});return ws}
+function workOf(c){const n=norm(c);const ws=[];SVCW.forEach(w=>{const i=n.indexOf(w);if(w==='هوا'&&/فلتر\s*(?:ال)?هوا/.test(n)&&!/(نفخ|ظبط\S*\s+(?:ال)?هوا|هوا\s+(?:ال)?كفر)/.test(n))return;if(i>=0){let seg=n.slice(i).split(/\s(?:و\s?\d|وصرف|و\d)/)[0].split(' ').filter(x=>!FILL.has(x)).slice(0,4).join(' ');if(!ws.some(x=>x.indexOf(w)>=0||seg.indexOf(x)>=0))ws.push(seg)}});return ws}
 const SHORTW=/(خلص|خلصت|خلصان|ناقص|ناقصه|نواقص|مفيش|ما فيش|مافيش|محتاجين|محتاجينه|نحتاج|محتاج نشتري|عايزين نشتري|لازم نشتري|اطلبوا|اطلب|نفد|نفذ)/;
 const NOTEW=/^(ملاحظه|ملاحظة|لاحظت|خلي بالك|انتبه|تنبيه)|تحتاج|محتاج[هة]?\s|محتاجين|عايز[هة]?\s|قرب يخلص|قرّب يخلص|محتاج تغيير|محتاجه تغيير|بيصفر|بيسرب|فيه صوت|فيها صوت/;
 function localParse(text){text=String(text||'').replace(/(?:ال)?(?:زجمات|زجمه|زجمة|زجمت|فحمات|فحمه|فحمة|فحم|قماشات|قماشه|قماشة|قماش|كماشات)\s*(?:ال)?(?:فرامل|فرملة|فرامله|بريك)/g,'تيل فرامل').replace(/(?:ال)?(?:زجمات|فحمات|قماشات)(?=\s|$)/g,'تيل فرامل').replace(/سطح[هة]\s+(?:ا|أ)فراد/g,'سطحة أفراد').replace(/(?:^|\s)(?:واحد|اتنين|تلاته|تلاتة|اربعه|اربعة|خمسه|خمسة|سته|ستة|سبعه|سبعة|تمانيه|ثمانية|تسعه|تسعة|عشره|عشرة)\s+(?=(?:ال)?(?:سيار[هة]|عربي[هة]|سطح[هة]|شاحن[هة]))/g,' ');const cl=splitClauses(text);let plate='';const ents=[];const wn=[];
  cl.forEach(c=>{if(c==='§'){plate='';return}c=c.replace(/^(?:كد[هة]\s+)?(?:معانا|عندنا)\s+(?:اصلاح|إصلاح|تصليح|صيانه|صيانة|الورش[هة])\s*/,'');if(!c.trim())return;const nc=norm(c);const p=findPlate(c);if(p)plate=p;
   if(SHORTW.test(nc)&&!OUTW.some(w=>new RegExp('(^|\\s)'+w+'(\\s|$)').test(nc))){const it=partsOf(c).filter(x=>!(p&&digits(x.n)===digits(p)));ents.push({type:'short',plate:'',items:it,work:[],text:c});return}
-  if((p||plate)&&/(تحتاج|محتاج|محتاجه|محتاجة|لازم|عايز[هة]?|ناقصها|عاوز[هة]?)/.test(nc)&&/(زيت|فلتر|فلاتر|فرامل|تيل|كفر|كفرات|بطاري|كهربا|لحام|فحص|رديتر|تسريب|صيان|مكيف|عفش|مساعد|جير|قير|تشحيم|ميزان|صدم|موتور|ماتور|سلف|دينمو|لمب|كشاف)/.test(nc)){ents.push({type:'req',plate:p||plate,items:[],work:[],text:c});return}
+  if((p||plate)&&/(تحتاج|محتاج|محتاجه|محتاجة|لازم|عايز[هة]?|ناقصها|عاوز[هة]?)/.test(nc)&&/(زيت|فلتر|فلاتر|فرامل|تيل|كفر|كفرات|بطاري|كهربا|لحام|فحص|رديتر|تسريب|صيان|مكيف|عفش|مساعد|جير|قير|تشحيم|ميزان|صدم|موتور|ماتور|سلف|دينمو|لمب|كشاف|تركيب|نساف|عتب|سمكر|دهان|باب)/.test(nc)){ents.push({type:'req',plate:p||plate,items:[],work:[],text:c});return}
   if(NOTEW.test(nc)){ents.push({type:'note',plate:p||plate,items:[],work:[],text:c});return}
   const it=partsOf(c).filter(x=>!(p&&digits(x.n)===digits(p)));const wk=workOf(c);
   if(!it.length&&!wk.length){const left=c.split(' ').filter(x=>!FILL.has(norm(x))&&!OUTW.includes(norm(x))&&(!digits(p)||digits(x)!==digits(p))).join(' ').trim();if(left.length>2)wn.push({text:c,plate,why:'مش واضح اتعمل إيه'});return}
   if(!plate){wn.push({text:c,plate:'',why:'مفيش رقم عربية',items:it,work:wk});return}
   if(it.length){let e=ents.find(x=>x.type==='out'&&digits(x.plate)===digits(plate));if(!e){e={type:'out',plate,items:[],work:[],text:''};ents.push(e)}e.items.push(...it);e.text+=(e.text?' · ':'')+c;
    const used=/(ركبنا|ركبت|غيرنا|غيرت|حطينا|حطيت|بدلنا|بدلت|تركيب|ركبناه|ركبناهم)/.test(nc);
+   const wk2=wk.filter(x=>!/^(تركيب|ركبنا|ركبت|ركبناله|اتركب|اتركبت)(\s|$)/.test(x)&&!(it.length&&/^(تركيب|ركب)/.test(x)));if(wk2.length<wk.length&&!wk2.length){wk.length=0}else if(wk2.length<wk.length){wk.splice(0,wk.length,...wk2)}
    if(wk.length||used){let w=ents.find(x=>x.type==='pw'&&digits(x.plate)===digits(plate));if(!w){w={type:'pw',plate,items:[],work:[],text:''};ents.push(w)}w.items.push(...it.map(x=>Object.assign({},x)));w.work.push(...(wk.length?wk:['تركيب '+it.map(x=>x.n).join(' و')]));w.text+=(w.text?' · ':'')+c}}
   else{let e=ents.find(x=>x.type==='svc'&&digits(x.plate)===digits(plate));if(!e){e={type:'svc',plate,items:[],work:[],text:''};ents.push(e)}e.work.push(...wk);e.text+=(e.text?' · ':'')+c}});
  return{entries:ents,wn}}
@@ -516,15 +517,20 @@ window.__radarParse=localParse;window.__rt={listen:(...a)=>listen(...a),cap:()=>
 
 /* ---------- AI parse (when a key is shared) ---------- */
 function aiKey(){return LS('ayn-key')||cfg().aik||''}
-async function gem(parts){const k=aiKey();if(!k)throw new Error('nokey');const MS=['gemini-flash-latest','gemini-2.5-flash','gemini-flash-lite-latest'];
+async function gem(parts){const k=aiKey();if(!k)throw new Error('nokey');
+ if(/^sk-/.test(k)){const content=parts.map(p=>p.inline_data?{type:'image',source:{type:'base64',media_type:p.inline_data.mime_type,data:p.inline_data.data}}:{type:'text',text:p.text||''});const c=new AbortController();const h=setTimeout(()=>c.abort(),30000);
+  const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',signal:c.signal,headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-sonnet-5-5',max_tokens:2048,messages:[{role:'user',content}]})});clearTimeout(h);
+  if(!r.ok)throw new Error('ai');const j=await r.json();const tx=(j.content||[]).map(x=>x.text||'').join('');const m=tx.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0]);throw new Error('ai')}
+ const MS=['gemini-flash-latest','gemini-2.5-flash','gemini-flash-lite-latest'];
  for(const md of MS){try{const c=new AbortController();const h=setTimeout(()=>c.abort(),25000);
   const r=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+md+':generateContent',{method:'POST',signal:c.signal,headers:{'content-type':'application/json','x-goog-api-key':k},body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',temperature:0}})});clearTimeout(h);
+  if(r.status===401||r.status===403){const r2=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+md+':generateContent?key='+encodeURIComponent(k),{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts}],generationConfig:{responseMimeType:'application/json',temperature:0}})});if(r2.ok){const j=await r2.json();const t=((j.candidates||[])[0]||{}).content;const tx=t&&t.parts?t.parts.map(p=>p.text||'').join(''):'';const m=tx.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0])}continue}
   if(!r.ok)continue;const j=await r.json();const t=((j.candidates||[])[0]||{}).content;const tx=t&&t.parts?t.parts.map(p=>p.text||'').join(''):'';const m=tx.match(/\{[\s\S]*\}/);if(m)return JSON.parse(m[0])}catch(_){}}
  throw new Error('ai')}
 async function aiParse(text){
  const plates=vehs().map(v=>v.plate).slice(0,300).join(' | ');
  const parts=[...new Set(items.filter(i=>i.kind==='part').map(p=>p.name).filter(Boolean))].slice(0,300).join(' | ');
- const pr='إنت مساعد مستودع وورشة نقل ثقيل في السعودية. حلّل الكلام العامي ده لعمليات. القواعد: (1) ما تضيّعش أي معلومة: كل جزء من الكلام لازم يروح لعملية أو لقائمة unclear. (2) الأنواع: out = قطع/زيوت خرجت من المستودع بكميات. pw = شغل اتعمل باستخدام القطع دي (تركيب/تغيير). svc = شغل من غير قطع (لحام، بنشر، كهربا). req = شغل مطلوب على عربية ولسه ما اتعملش (تحتاج/محتاجة/لازم/عايزة) — حط في work أسماء الشغل (زي: تغيير زيت، فلاتر، تيل فرامل). note = ملاحظة على عربية. short = حاجة خلصت/ناقصة في المستودع ومحتاجة تتشرى (من غير رقم عربية). عربية واحدة ممكن يبقى لها out و pw. (3) plate = رقم العربية كما قيل (أرقام فقط لو مفيش حروف). (4) الكلام صوتي ومسموع بلهجة مصرية/خليجية وفيه كلمات اتسمعت غلط: افهم المقصود من السياق زي ما ميكانيكي خبير بيفهم. قاموس الشغل عندنا: قماشات/فحمات/زجمات فرامل = تيل فرامل. سطحة أفراد = نوع عربية (سطحة صغيرة بتشيل عربية أو اتنين) وده وصف للعربية مش شغل. راس = رأس تريلا. تيدر/لوبد/ملحق = مقطورة. بنشر = تصليح كفر. ترصيص/ميزان = ضبط الكفرات. جنط = طارة الكفر. هوب/صرة = جزء في الفرامل والعجل. دبرياج/كلتش = الدبرياج. كمبروسر = كمبروسر هوا أو تكييف حسب السياق. شكمان = العادم. اكصدامة = الصدام. بواجي/بلوف = قطع موتور. لو كلمة مش مفهومة اختار أقرب كلمة شغل منطقية. أرقام قبل كلمة سيارة زي «خمسة سيارة 5940» تجاهلها. (5) لو مش عارف رقم العربية أو مش فاهم، حطه في unclear مع السبب. أرقام العربيات المعروفة: '+plates+' . أسماء قطع معروفة: '+parts+' . رجّع JSON فقط: {"entries":[{"type":"out|pw|svc|req|note|short","plate":"","items":[{"n":"اسم القطعة","q":1,"u":"لتر/حبة/..."}],"work":["وصف الشغل"],"text":"الجزء من الكلام"}],"unclear":[{"text":"","plate":"","why":""}]}\nالكلام: «'+text+'»';
+ const pr='إنت مساعد مستودع وورشة نقل ثقيل في السعودية. حلّل الكلام العامي ده لعمليات. القواعد: (1) ما تضيّعش أي معلومة: كل جزء من الكلام لازم يروح لعملية أو لقائمة unclear. (2) الأنواع: out = قطع/زيوت خرجت من المستودع بكميات. pw = شغل اتعمل باستخدام القطع دي (تركيب/تغيير). svc = شغل من غير قطع (لحام، بنشر، كهربا). req = شغل مطلوب على عربية ولسه ما اتعملش (تحتاج/محتاجة/لازم/عايزة) — حط في work أسماء الشغل (زي: تغيير زيت، فلاتر، تيل فرامل). note = ملاحظة على عربية. short = حاجة خلصت/ناقصة في المستودع ومحتاجة تتشرى (من غير رقم عربية). عربية واحدة ممكن يبقى لها out و pw. (3) plate = رقم العربية كما قيل (أرقام فقط لو مفيش حروف). (4) الكلام صوتي ومسموع بلهجة مصرية/خليجية وفيه كلمات اتسمعت غلط: افهم المقصود من السياق زي ما ميكانيكي خبير بيفهم. قاموس الشغل عندنا: قماشات/فحمات/زجمات فرامل = تيل فرامل. سطحة أفراد = نوع عربية (سطحة صغيرة بتشيل عربية أو اتنين) وده وصف للعربية مش شغل. راس = رأس تريلا. تيدر/لوبد/ملحق = مقطورة. بنشر = تصليح كفر. ترصيص/ميزان = ضبط الكفرات. جنط = طارة الكفر. هوب/صرة = جزء في الفرامل والعجل. دبرياج/كلتش = الدبرياج. كمبروسر = كمبروسر هوا أو تكييف حسب السياق. شكمان = العادم. اكصدامة = الصدام. بواجي/بلوف = قطع موتور. تركيب/ركبنا/اتركب = شغل اتعمل فعلاً (svc لو من غير قطع، pw لو فيه قطع). نسافة = عتبة/سلم باب السطحة. لو كلمة مش مفهومة اختار أقرب كلمة شغل منطقية.'+(window.__dictPrompt?window.__dictPrompt():'')+' أرقام قبل كلمة سيارة زي «خمسة سيارة 5940» تجاهلها. (5) لو مش عارف رقم العربية أو مش فاهم، حطه في unclear مع السبب. أرقام العربيات المعروفة: '+plates+' . أسماء قطع معروفة: '+parts+' . رجّع JSON فقط: {"entries":[{"type":"out|pw|svc|req|note|short","plate":"","items":[{"n":"اسم القطعة","q":1,"u":"لتر/حبة/..."}],"work":["وصف الشغل"],"text":"الجزء من الكلام"}],"unclear":[{"text":"","plate":"","why":""}]}\nالكلام: «'+text+'»';
  const j=await gem([{text:pr}]);
  return{entries:(j.entries||[]).filter(e=>e&&(['note','short'].includes(e.type)||(e.type==='req'&&String(e.plate||'').trim())||((e.plate||'').toString().trim()&&((e.items||[]).length||(e.work||[]).length)))).map(e=>({type:['out','pw','svc','req','note','short'].includes(e.type)?e.type:'out',plate:String(e.plate),items:(e.items||[]).map(x=>({n:String(x.n||''),q:+x.q||1,u:x.u||''})).filter(x=>x.n),work:(e.work||[]).map(String),text:e.text||''})),
   wn:(j.unclear||[]).map(u=>({text:u.text||'',plate:u.plate||'',why:u.why||'محتاج توضيح'})).filter(u=>u.text)}}
@@ -558,7 +564,7 @@ async function analyze(){const text=(cap.text||'').trim();if(!text&&!cap.photos.
  const b=$('cgo');if(b){b.disabled=true;b.innerHTML='<span class="busy"></span> بحلّل…'}
  let r=null,via='local';
  if(text&&aiKey()&&navigator.onLine){try{r=await aiParse(text);via='ai'}catch(_){r=null}}
- if(!r)r=text?localParse(text):{entries:[],wn:[]};
+ if(!r)r=text?localParse(text):{entries:[],wn:[]};r.via=via;try{if(cap.heard&&text&&cap.heard!==text&&window.__dictLearn)window.__dictLearn(cap.heard,text)}catch(_){}
  /* nothing gets lost: AI result + anything the local parser found that AI dropped */
  if(via==='ai'&&!r.entries.length&&!r.wn.length)r.wn.push({text,plate:'',why:'مش واضح'});
  if(!r.entries.length&&!r.wn.length)r.wn.push({text:text||'صورة بدون كلام',plate:'',why:'محتاج توضيح'});
@@ -566,7 +572,7 @@ async function analyze(){const text=(cap.text||'').trim();if(!text&&!cap.photos.
  else if(cap.photos.length)r.entries[0].photos=cap.photos;
  review(r,text)}
 function pcard(e,i,isWn){const t=isWn?'wn':e.type;
- return '<div class="pc'+(isWn?' wn':'')+'" data-i="'+i+'"><div class="ty">'+[['out','📦 قطع خرجت'],['pw','🔩 بقطع'],['svc','🔧 بدون قطع'],['note','📝 ملاحظة'],['short','🛒 نواقص'],['wn','❓ WN']].map(x=>'<button data-t="'+x[0]+'" class="'+(t===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'+
+ return '<div class="pc'+(isWn?' wn':'')+'" data-i="'+i+'"><div class="ty">'+[['req','🛠 مطلوب للورشة'],['out','📦 قطع خرجت'],['pw','🔩 بقطع'],['svc','🔧 بدون قطع'],['note','📝 ملاحظة'],['short','🛒 نواقص'],['wn','❓ WN']].map(x=>'<button data-t="'+x[0]+'" class="'+(t===x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>'+
   (isWn&&e.why?'<div class="raw" style="color:#ffb3a8;margin:0 0 6px">⚠ '+E(e.why)+'</div>':'')+
   '<label>رقم العربية</label><input class="pp" value="'+E(e.plate||'')+'" inputmode="numeric" placeholder="مثلاً 2976">'+
   '<label>القطع (كل سطر: الكمية الاسم)</label><textarea class="pi" style="min-height:60px">'+E((e.items||[]).map(x=>(x.q||1)+(x.u?' '+x.u:'')+' '+x.n).join('\n'))+'</textarea>'+
@@ -582,10 +588,10 @@ function missWhy(e){const m=[];const t=e.type;
  return m.length?'باقي '+m.join(' و'):(e.why||'محتاج مراجعة')}
 function rsum(e){const t=TYN[e.type]||TYN.wn;const x=[itemsTxt(e),workTxt(e)].filter(Boolean).join(' · ')||e.text||'';
  const dv=e.plate?driverOf(e.plate):'';return '<div class="rs"><span class="rty" style="background:'+(COLR[e.type]||'#999')+'">'+t[0]+' '+t[1]+'</span>'+(e.plate?'<b class="rpl">'+E(e.plate)+'</b>':'<b class="rpl no">بدون رقم</b>')+'</div>'+(e.plate?'<div class="rdv">👤 '+(dv?E(dv):'<span style="color:#ffb3a8">مفيش سواق متسجل على العربية دي</span>')+'</div>':'')+'<div class="rtx">'+E(x)+'</div>'}
-function review(r,text){RV={text,list:r.entries.map(e=>Object.assign({},e)).concat(r.wn.map(w=>Object.assign({type:'wn'},w)))};RV.list.forEach(e=>{e.st='p';e.ed=false});RV.ok=0;RV.wt=0;RV.dl=0;
+function review(r,text){RV={via:r.via,text,list:r.entries.map(e=>Object.assign({},e)).concat(r.wn.map(w=>Object.assign({type:'wn'},w)))};RV.list.forEach(e=>{e.st='p';e.ed=false});RV.ok=0;RV.wt=0;RV.dl=0;
  const left=()=>RV.list.filter(e=>e.st==='p');
  const drawRv=()=>{const L=left().length;
-  sheet('<h3>راجع واحدة واحدة <button onclick="rClose()">×</button></h3><div class="rbar"><span>فاضل <b>'+L+'</b> من '+RV.list.length+'</span>'+(L>1?'<button id="rall">✅ اعتمد الكل</button>':'')+'</div><div id="rvl">'+RV.list.map((e,i)=>{
+  sheet('<h3>راجع واحدة واحدة <button onclick="rClose()">×</button></h3><div class="rbar"><span>فاضل <b>'+L+'</b> من '+RV.list.length+' · <small style="opacity:.8">'+(RV.via==='ai'?'🤖 فهمها الذكاء الاصطناعي':'📖 فهمها القاموس')+'</small></span>'+(L>1?'<button id="rall">✅ اعتمد الكل</button>':'')+'</div><div id="rvl">'+RV.list.map((e,i)=>{
    if(e.st!=='p')return '<div class="rdone '+e.st+'">'+(e.st==='ok'?'✅ اتعتمدت':e.st==='wt'?'⏳ اتأجلت · '+E(e.why||''):'🗑 اتحذفت')+' — '+E((TYN[e.type]||TYN.wn)[1])+(e.plate?' '+E(e.plate):'')+'</div>';
    return '<div class="rc" data-i="'+i+'"><div class="rn">'+(i+1)+'</div>'+(e.ed?pcard(e,i,e.type==='wn'):rsum(e))+'<div class="r4"><button data-a="ok" class="k1">✅<i>اعتماد</i></button><button data-a="ed" class="k2">✏️<i>'+(e.ed?'خلاص':'تعديل')+'</i></button><button data-a="wt" class="k3">⏳<i>تأجيل</i></button><button data-a="dl" class="k4">🗑<i>حذف</i></button></div></div>'}).join('')+'</div><button class="btn o" id="radd">➕ حاجة نسيتها</button>');
   $('rvl').querySelectorAll('.rc').forEach(c=>{const i=+c.dataset.i;const e=RV.list[i];
@@ -632,17 +638,17 @@ function mkRec(base,onText,onDone){const SR=window.SpeechRecognition||window.web
  const go=()=>{r=new SR();r.lang=localStorage.getItem('ayn-srl')||'ar-EG';r.continuous=true;r.interimResults=true;seg={};
   r.onresult=e=>{if(r&&r.lang==='ar-EG')localStorage.setItem('ayn-srl','ar-EG');for(let i=e.resultIndex;i<e.results.length;i++)seg[i]=e.results[i][0].transcript;onText(txt())};
   r.onerror=e=>{if(e.error==='language-not-supported'){localStorage.setItem('ayn-srl','ar-SA');return}if(e.error==='not-allowed'||e.error==='service-not-allowed'){toast('اسمح للمايك من الإعدادات');want=false}};
-  r.onend=()=>{base=txt();seg={};r=null;if(want)setTimeout(()=>{if(want)try{go()}catch(_){end()}},120);else end()};
+  r.onend=()=>{base=txt();seg={};r=null;if(want)setTimeout(()=>{if(want)try{go()}catch(_){end()}},30);else end()};
   r.start()};
- const end=()=>{if(fin)return;fin=true;onDone(base)};
- go();return{stop(){want=false;if(r){try{r.stop()}catch(_){}setTimeout(()=>{if(!fin){try{r&&r.abort()}catch(_){}end()}},700)}else end()}}}
+ const end=()=>{if(fin)return;fin=true;const t=txt();base=t;seg={};onDone(t)};
+ go();return{stop(){want=false;if(r){try{r.stop()}catch(_){}setTimeout(()=>{if(!fin){try{r&&r.abort()}catch(_){}end()}},900)}else end()}}}
 /* ---------- voice ---------- */
 let rec=null,recOn=false,recBase='';
 function listen(fromSheet){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!SR){toast('الصوت مش مدعوم هنا، اكتب بدل كده');openCapture();return}
  if(recOn){rec.stop();return}
  recBase=cap.text||'';recOn=true;$('micw').classList.add('on');$('mhint').textContent='سامعك… اضغط ⏹ خلصت لما تخلص';document.body.classList.add('rec-on');
- try{rec=mkRec(recBase,t=>{cap.text=t;const x=$('ctx');if(x)x.value=t;$('mhint').textContent=t?('…'+String(t).slice(-70)):'سامعك…'},t=>{cap.text=fixW(t);rec=null;recOn=false;document.body.classList.remove('rec-on');$('micw').classList.remove('on');$('mhint').textContent='اضغط وقول اللي اتعمل';if(cap.text&&!fromSheet)analyzeQuick();else if(fromSheet)openCapture()})}catch(_){recOn=false;document.body.classList.remove('rec-on');$('micw').classList.remove('on')}}
+ try{rec=mkRec(recBase,t=>{cap.text=t;const x=$('ctx');if(x)x.value=t;$('mhint').textContent=t?('…'+String(t).slice(-70)):'سامعك…'},t=>{cap.text=fixW(t);cap.heard=cap.text;rec=null;recOn=false;document.body.classList.remove('rec-on');$('micw').classList.remove('on');$('mhint').textContent='اضغط وقول اللي اتعمل';if(cap.text&&!fromSheet)analyzeQuick();else if(fromSheet)openCapture()})}catch(_){recOn=false;document.body.classList.remove('rec-on');$('micw').classList.remove('on')}}
 function analyzeQuick(){openCapture();analyze()}
 $('mic').onclick=()=>listen(false);
 (function(){const b=document.createElement('button');b.type='button';b.id='recstop';b.textContent='⏹ خلصت';b.onclick=e=>{e.stopPropagation();if(recOn&&rec)rec.stop()};document.body.appendChild(b);
@@ -689,14 +695,16 @@ async function wnAct0(id,a){const o=items.find(x=>x.id===id);if(!o)return;
   sheet('<h3>وضّح واعتمد <button onclick="rClose()">×</button></h3><div class="raw" style="margin-bottom:8px">«'+E(o.text)+'»</div><div id="rvl">'+pcard(RV.list[0],0,false)+'</div>'+inRow()+'<button class="btn" id="rok">✅ اعتمد</button>');bindIn($('shb'),()=>$('rvl').querySelector('.pw'),d=>{RV.list[0].photos=(RV.list[0].photos||[]).concat([d]);toast('📷 اتضافت الصورة')});
   const c=$('rvl').querySelector('.pc');c.querySelectorAll('.ty button').forEach(b=>b.onclick=()=>{c.querySelectorAll('.ty button').forEach(x=>x.classList.toggle('on',x===b));RV.list[0].type=b.dataset.t});c.querySelector('[data-del]').hidden=true;
   $('rok').onclick=async()=>{grab();const e=RV.list[0];if(e.type==='wn'||!e.plate||(!e.items.length&&!e.work.length)){toast('محتاج رقم العربية والقطع أو الشغل');return}
-   Object.assign(o,{photos:e.photos||o.photos,type:e.items.length&&e.type==='out'?'out':'svc',plate:e.plate,driver:driverOf(e.plate),items:e.items,work:e.work,st:'ok',okBy:st.name,okTs:Date.now()});o.hist=(o.hist||[]).concat([{a:'ok',by:st.name,ts:Date.now()}]);await put(o);toast('✅ اتعتمدت');openPage('wn')}}}
+   o.wts=Date.now();Object.assign(o,{photos:e.photos||o.photos,type:e.items.length&&e.type==='out'?'out':'svc',plate:e.plate,driver:driverOf(e.plate),items:e.items,work:e.work,st:'ok',okBy:st.name,okTs:Date.now()});o.hist=(o.hist||[]).concat([{a:'ok',by:st.name,ts:Date.now()}]);await put(o);toast('✅ اتعتمدت');openPage('wn')}}}
 function openEnt(id){const o=items.find(x=>x.id===id);if(!o)return;const dm=dupMap();
  let h='<h3>'+TYN[o.type][0]+' '+E(o.plate)+' <button onclick="rClose()">×</button></h3>'+entHTML(o,dm)+'<div class="raw">اللي اتقال: «'+E(o.raw||o.text)+'»</div>'+(o.photos&&o.photos.length?'<div class="thumbs" style="margin-top:8px">'+o.photos.map(p=>'<img src="'+p+'">').join('')+'</div>':'');
  if(dm[o.id])h+='<div class="raw" style="color:#ffd27a">🔁 شبه تسجيل تاني لنفس العربية خلال يوم ونص — مش هتتحسب مرتين.</div>';
  h+=actRow(o);sheet(h);bindActs(()=>openEnt(o.id))}
 function editEnt(o){{RV={text:o.raw,list:[Object.assign({},o)]};sheet('<h3>تعديل <button onclick="rClose()">×</button></h3><div id="rvl">'+pcard(RV.list[0],0,false)+'</div>'+inRow()+'<button class="btn" id="esv">حفظ</button>');bindIn($('shb'),()=>$('rvl').querySelector('.pw'),d=>{RV.list[0].photos=(RV.list[0].photos||[]).concat([d]);toast('📷 اتضافت الصورة')});
   const c=$('rvl').querySelector('.pc');c.querySelector('[data-del]').hidden=true;c.querySelectorAll('.ty button').forEach(b=>b.onclick=()=>{c.querySelectorAll('.ty button').forEach(x=>x.classList.toggle('on',x===b));RV.list[0].type=b.dataset.t});
-  $('esv').onclick=async()=>{grab();const e=RV.list[0];Object.assign(o,{photos:e.photos||o.photos,type:e.type,plate:e.plate,driver:driverOf(e.plate),items:e.items,work:e.work,st:e.type==='wn'?'open':'ok'});o.hist=(o.hist||[]).concat([{a:'edit',by:st.name,ts:Date.now()}]);await put(o);closeSheet();toast('✅ اتعدلت')}}}
+  $('esv').onclick=async()=>{grab();const e=RV.list[0];
+   if(e.type==='req'){if(!/\d/.test(e.plate||'')){toast('اكتب رقم العربية');return}if(window.__rqAdd)await window.__rqAdd(e.plate,[(e.work||[]).join('، '),o.text||o.raw||''].join(' ').trim(),false);if(['out','pw','svc','wn'].includes(o.type)){o.st='x';o.hist=(o.hist||[]).concat([{a:'to-req',by:st.name,ts:Date.now()}]);await put(o)}closeSheet();toast('🛠 راحت لمطلوب من الورشة');return}
+   if((e.type==='pw'||e.type==='svc')&&o.type!==e.type)o.wts=Date.now();Object.assign(o,{photos:e.photos||o.photos,type:e.type,plate:e.plate,driver:driverOf(e.plate),items:e.items,work:e.work,st:e.type==='wn'?'open':'ok'});o.hist=(o.hist||[]).concat([{a:'edit',by:st.name,ts:Date.now()}]);await put(o);closeSheet();toast('✅ اتعدلت')}}}
 
 /* ---------- report / preview / PDF / WhatsApp ---------- */
 let RP={range:'today'};
@@ -836,8 +844,16 @@ window.__rqEnv={items:()=>window.__radar.items(),put:o=>window.__radar.put(o),
  const openT=o=>(o.tasks||[]).filter(t=>t.st!=='done');
  function lvlOf(o){const op=openT(o);if(!op.length)return'g';return op.some(t=>t.lvl==='r'&&t.st==='open')?'r':'y'}
  const lastDone=o=>Math.max(0,...(o.tasks||[]).map(t=>t.at||0));
- function shown(){const now=Date.now();return all().filter(o=>lvlOf(o)!=='g'||now-lastDone(o)<24*3600e3).sort((a,b)=>({r:0,y:1,g:2}[lvlOf(a)]-{r:0,y:1,g:2}[lvlOf(b)])||b.ts-a.ts)}
- async function save(o){o.mt=Date.now();o.st=openT(o).length?'open':'done';await ENV.put(o);draw(true)}
+ const day0=()=>{const d=new Date();d.setHours(0,0,0,0);return d.getTime()};
+ /* work done today (with or without parts) — shown green, resets at midnight */
+ function doneToday(){const t0=day0(),M={};ENV.items().filter(i=>i.kind==='wop'&&(i.type==='pw'||i.type==='svc')&&i.st!=='x'&&!i.deleted&&(i.wts||i.ts||0)>=t0&&dg(i.plate)).forEach(i=>{const k=dg(i.plate);(M[k]=M[k]||[]).push(i)});return M}
+ function wTasks(i){let n=(i.work||[]).filter(Boolean);if(!n.length)n=(i.items||[]).map(x=>x.n).filter(Boolean);if(!n.length)n=[String(i.text||'شغل').slice(0,30)];return n.map((s,j)=>({id:i.id+'~'+j,n:String(s),lvl:'y',st:'done',by:i.user||'',at:i.wts||i.ts,src:i.type}))}
+ const uq=L=>{const seen={};return L.filter(t=>{if(!t.src)return true;const k=String(t.n).replace(/\s+/g,' ').trim();if(seen[k])return false;seen[k]=1;return true})};
+ function shown(){const t0=day0(),M=doneToday();
+  const R=all().map(o=>{const k=dg(o.plate),ex=M[k];if(ex){delete M[k];o=Object.assign({},o,{tasks:uq((o.tasks||[]).concat(...ex.map(wTasks))),_v:ex.map(e=>e.id+(e.mt||e.ts)).join()})}return o}).filter(o=>lvlOf(o)!=='g'||lastDone(o)>=t0);
+  Object.keys(M).forEach(k=>{const ex=M[k];R.push({id:'rqv-'+k,virt:true,plate:ex[0].plate,driver:ex.map(e=>e.driver).find(Boolean)||'',ts:Math.max(...ex.map(e=>e.wts||e.ts||0)),text:'',cm:[],tasks:uq([].concat(...ex.map(wTasks))),_v:ex.map(e=>e.id+(e.mt||e.ts)).join()})});
+  return R.sort((a,b)=>({r:0,y:1,g:2}[lvlOf(a)]-{r:0,y:1,g:2}[lvlOf(b)])||(lastDone(b)||b.ts)-(lastDone(a)||a.ts))}
+ async function save(o){if(o.virt)return;o=Object.assign({},o,{tasks:(o.tasks||[]).filter(t=>!t.src)});delete o._v;o.mt=Date.now();o.st=openT(o).length?'open':'done';await ENV.put(o);draw(true)}
  window.__rqAdd=async function(plate,text,urg){if(!plate||!dg(plate))return;const L=tasksOf(text);if(urg)L.forEach(t=>t.lvl='r');if(!L.length)return;
   const me=ENV.me();let o=all().find(x=>dg(x.plate)===dg(plate)&&x.st!=='done');
   if(o){o=Object.assign({},o,{tasks:(o.tasks||[]).slice()});L.forEach(t=>{const ex=o.tasks.find(x=>x.n===t.n&&x.st!=='done');if(ex){if(t.lvl==='r')ex.lvl='r'}else o.tasks.push({id:uid(),n:t.n,lvl:t.lvl,st:'open',from:text})});o.text=(o.text?o.text+' · ':'')+text}
@@ -888,14 +904,14 @@ window.__rqEnv={items:()=>window.__radar.items(),put:o=>window.__radar.put(o),
  function bay(o){const l=lvlOf(o);const op=openT(o),dn=(o.tasks||[]).filter(t=>t.st==='done');
   const chips=op.map(t=>`<span class="${t.st==='wait'?'w':t.lvl}">${t.st==='wait'?'⏳ ':''}${E(t.n)}</span>`).concat(dn.map(t=>`<span class="g">✓ ${E(t.n)}</span>`)).slice(0,3).join('');
   const dv=(o.driver||drvOf(o.plate)||'').split(' ')[0];return `<div role="button" class="qbx${sel===o.id?' on':''}" data-rq="${o.id}" style="--c:${C[l]}"><div class="qhd">${E(o.plate)}</div><div class="qts">${chips}</div>${dv?`<div class="qdv">👤 ${E(dv)}</div>`:''}</div>`}
- function card(o){const l=lvlOf(o);const me=ENV.me();const op=openT(o),dn=(o.tasks||[]).filter(t=>t.st==='done');const lab={r:'🔴 عاجل',y:'🟡 مطلوب',g:'🟢 تمام'}[l];
+ function card(o){const l=lvlOf(o);const me=ENV.me();const op=openT(o),dn=(o.tasks||[]).filter(t=>t.st==='done');const lab={r:'🔴 عاجل',y:'🟡 مطلوب',g:'🟢 اتعمل'}[l];
   return `<div class="qdk" style="--c:${C[l]}"><div class="qdkh"><b>${E(o.plate)}</b><span>${E(o.driver||drvOf(o.plate)||'')}${o.ts?' · '+dd(o.ts)+' '+hm(o.ts):''}</span><em>${lab}</em></div>
   ${o.text?`<div class="qsaid">«${E(o.text)}»</div>`:''}
-  ${dn.length?`<div class="qdks"><i>✅ اتعمل</i>${dn.map(t=>`<div class="qdkr" style="--c:${C.g}"><span class="qnm">${E(t.n)}</span><small>${E(t.by||'')}${t.at?' · '+hm(t.at):''}</small></div>`).join('')}</div>`:''}
+  ${dn.length?`<div class="qdks"><i>✅ اتعمل</i>${dn.map(t=>`<div class="qdkr" style="--c:${C.g}"><span class="qnm">${t.src==='pw'?'🔩 ':t.src==='svc'?'🔧 ':''}${E(t.n)}</span><small>${E(t.by||'')}${t.at?' · '+hm(t.at):''}</small></div>`).join('')}</div>`:''}
   ${op.length?`<div class="qdks"><i>⏳ باقي</i>${op.map(t=>`<div class="qdkr" style="--c:${t.st==='wait'?'#9b8cff':C[t.lvl]}"><span class="qnm">${E(t.n)}${t.st==='wait'?`<br><small>⏳ مستني قطعة${t.note?': '+E(t.note):''}</small>`:''}</span>${me.owner?`<button type="button" class="qlv" data-lv="${t.id}" style="--c:${C[t.lvl]}">${t.lvl==='r'?'🔴 خطير':'🟡 عادي'}</button>`:`<small>${t.lvl==='r'?'🔴 خطير':'🟡 عادي'}</small>`}<button type="button" class="qck" data-ok="${t.id}" aria-label="اتعمل">✓</button></div>`).join('')}</div>`:''}
   ${(o.cm||[]).map(c=>`<div class="qcm"><b>${E(c.by)}:</b> ${E(c.t)} <small>${hm(c.at)}</small></div>`).join('')}
   ${mode?`<div class="qinp"><input id="rqin" placeholder="${mode==='wait'?'مستني إيه؟ (اسم القطعة)':'اكتب تعليقك'}"><button type="button" class="${mode==='wait'?'qb2':'qb3'}" id="rqgo">حفظ</button></div>`:''}
-  ${op.length?`<div class="qdkb"><button type="button" class="qb1" data-a="all">✅ اتعمل</button><button type="button" class="qb2" data-a="wait">⏳ مستني قطعة</button><button type="button" class="qb3" data-a="cm">💬 تعليق</button></div>`:`<div class="qdkb" style="grid-template-columns:1fr"><button type="button" class="qb3" data-a="cm">💬 تعليق</button></div>`}</div>`}
+  ${o.virt?'':op.length?`<div class="qdkb"><button type="button" class="qb1" data-a="all">✅ اتعمل</button><button type="button" class="qb2" data-a="wait">⏳ مستني قطعة</button><button type="button" class="qb3" data-a="cm">💬 تعليق</button></div>`:`<div class="qdkb" style="grid-template-columns:1fr"><button type="button" class="qb3" data-a="cm">💬 تعليق</button></div>`}</div>`}
  let lastSig='',showAll=false,one=false;const MAXH=8;
  function gridHTML(L){let g='';L.forEach((o,i)=>{g+=bay(o);const endRow=(i%4===3)||i===L.length-1;if(endRow&&sel){const rs=i-(i%4);if(L.slice(rs,i+1).some(x=>x.id===sel))g+=card(L.find(x=>x.id===sel))}});return g}
  function bind(d,L){
@@ -909,17 +925,17 @@ window.__rqEnv={items:()=>window.__radar.items(),put:o=>window.__radar.put(o),
    x.cm.push({by:me.name,t:(mode==='wait'?'⏳ مستني: ':'')+v,at:Date.now()});mode='';await save(x)}}
  function draw(force){const host=ENV.host();if(!host)return;let d=document.getElementById('rqd');
   if(!document.getElementById('rqcss')){const st=document.createElement('style');st.id='rqcss';st.textContent=CSS;document.head.appendChild(st)}
-  const L=shown();const sig=L.map(o=>o.id+':'+(o.mt||o.ts)).join()+'|'+sel+'|'+mode+'|'+showAll+'|'+one;
+  const L=shown();const sig=L.map(o=>o.id+':'+(o.mt||o.ts)+(o._v||'')).join()+'|'+sel+'|'+mode+'|'+showAll+'|'+one;
   if(d&&d.parentNode===host.parentNode&&!force&&sig===lastSig)return;lastSig=sig;
   if(!d||d.parentNode!==host.parentNode){if(d)d.remove();d=document.createElement('div');d.id='rqd';host.after(d)}
   if(sel&&!L.some(o=>o.id===sel)){sel='';mode='';one=false}
   const n=k=>L.filter(o=>lvlOf(o)===k).length;
   const af=document.activeElement&&document.activeElement.id==='rqin'?document.activeElement.value:null;
-  const head=(x)=>`<div class="qdh"><div class="qdt">🛠 مطلوب من الورشة${x||''}</div><div class="qdc"><span style="--c:${C.r}">${n('r')}</span><span style="--c:${C.y}">${n('y')}</span><span style="--c:${C.g}">${n('g')}</span></div></div>`;
+  const head=(x)=>`<div class="qdh"><div class="qdt">🛠 الورشة: مطلوب واتعمل${x||''}</div><div class="qdc"><span style="--c:${C.r}">${n('r')}</span><span style="--c:${C.y}">${n('y')}</span><span style="--c:${C.g}">${n('g')}</span></div></div>`;
   const top=L.slice(0,MAXH),more=L.length-top.length;
   if(showAll&&!more)showAll=false;
   const selTop=!showAll;
-  d.innerHTML=head()+(L.length?`<div class="qby"><div class="qtg">${top.map(bay).join('')}</div>${more?`<button type="button" class="qmore" id="rqmore">➕ عرض الكل (${L.length}) — فيه ${more} كمان</button>`:''}</div>`:'<div class="qnn">✅ مفيش مطلوب من الورشة دلوقتي</div>');
+  d.innerHTML=head()+(L.length?`<div class="qby"><div class="qtg">${top.map(bay).join('')}</div>${more?`<button type="button" class="qmore" id="rqmore">➕ عرض الكل (${L.length}) — فيه ${more} كمان</button>`:''}</div>`:'<div class="qnn">✅ لسه مفيش شغل في الورشة النهارده</div>');
   let ov=document.getElementById('rqall');
   if(one&&!showAll){const o=L.find(x=>x.id===sel);if(!ov){ov=document.createElement('div');ov.id='rqall';document.body.appendChild(ov)}
    ov.innerHTML=`<div id="rqd" class="qfull qone"><div class="qdh"><div class="qdt">🛠 ${E(o.plate)}</div></div><button type="button" class="qx" id="rqx">✕</button><div class="qtg">${card(o)}</div></div>`;
@@ -933,10 +949,68 @@ window.__rqEnv={items:()=>window.__radar.items(),put:o=>window.__radar.put(o),
  window.__rqDraw=draw;
  setInterval(()=>{try{draw(false)}catch(_){}},1200);
 })();
-
+/* ===== القاموس المشترك (عين + رادار) — كلمة تتصلح مرتين تتضاف لوحدها ===== */
+(function(){
+ const ENV=window.__rqEnv;if(!ENV)return;
+ const nz=w=>String(w||'').replace(/[إأآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u064B-\u0652\u0640]/g,'').replace(/\s+/g,' ').trim();
+ const AR=/^[\u0600-\u06FF\s]+$/;
+ const SEED={'قماشات فرامل':'تيل فرامل','فحمات فرامل':'تيل فرامل','زجمات فرامل':'تيل فرامل','نسافه':'نسافة','عتبه الباب':'عتبة الباب'};
+ const rec=()=>ENV.items().find(i=>i.id==='dict-shared')||{id:'dict-shared',kind:'dict',w:{},p:{}};
+ const words=()=>{const W={};Object.keys(SEED).forEach(k=>W[nz(k)]={f:k,t:SEED[k],seed:1});const w=rec().w||{};Object.keys(w).forEach(k=>W[k]=w[k]);return W};
+ const pat=k=>k.split(' ').map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,'\\$&').replace(/ا/g,'[اأإآ]').replace(/ه/g,'[هة]').replace(/ي/g,'[يى]')).join('\\s+');
+ window.__dictApply=function(t){let s=String(t||'');const W=words();Object.keys(W).sort((a,b)=>b.length-a.length).forEach(k=>{if(!k)return;try{s=s.replace(new RegExp('(^|[\\s،,.])((?:و|ب|وال|ال)?)'+pat(k)+'(?=$|[\\s،,.])','g'),(m,a,pre)=>a+(pre&&!/^ال/.test(W[k].t)?pre:pre.replace(/ال$/,''))+W[k].t)}catch(_){}});return s};
+ function pairs(a,b){const A=String(a).split(/\s+/).filter(Boolean),B=String(b).split(/\s+/).filter(Boolean);let i=0;while(i<A.length&&i<B.length&&nz(A[i])===nz(B[i]))i++;let j=0;while(j<A.length-i&&j<B.length-i&&nz(A[A.length-1-j])===nz(B[B.length-1-j]))j++;
+  const x=A.slice(i,A.length-j),y=B.slice(i,B.length-j);if(!x.length||!y.length)return[];
+  if(x.length===y.length&&x.length<=6)return x.map((w,k)=>[w,y[k]]).filter(p=>nz(p[0])!==nz(p[1]));
+  if(x.length<=3&&y.length<=3)return[[x.join(' '),y.join(' ')]];return[]}
+ window.__dictLearn=async function(a,b){try{const P=pairs(a,b).filter(p=>AR.test(p[0])&&AR.test(p[1])&&nz(p[0]).length>=2&&nz(p[1]).length>=2);if(!P.length)return;
+  const o=JSON.parse(JSON.stringify(rec()));o.w=o.w||{};o.p=o.p||{};const me=ENV.me();let added=[];
+  P.forEach(([f,t])=>{const k=nz(f);if(o.w[k]&&nz(o.w[k].t)===nz(t))return;const pk=k+'→'+nz(t);const c=o.p[pk]||{f,t,n:0};c.n++;c.by=me.name;c.at=Date.now();
+   if(c.n>=2){o.w[k]={f,t,by:me.name,at:Date.now()};delete o.p[pk];added.push(t)}else o.p[pk]=c});
+  o.mt=Date.now();await ENV.put(o);if(added.length&&ENV.toast)ENV.toast('📖 اتضافت للقاموس: '+added.join('، '))}catch(_){}};
+ window.__dictPrompt=function(){const W=words();const L=Object.keys(W).slice(0,120).map(k=>W[k].f+' = '+W[k].t);return L.length?' كلمات بتتسمع غلط ومعناها الصح: '+L.join('، ')+'.':''};
+ window.__dictUI=function(box){if(!box)return;const o=rec(),w=o.w||{},p=o.p||{};const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  box.innerHTML='<h4>📖 القاموس (عين + رادار)</h4><p class="hn">أي كلمة تتصلح مرتين بتتضاف هنا لوحدها، والمايك والذكاء بيفهموها بعد كده.</p>'+
+   '<div class="dcl">'+Object.keys(w).map(k=>'<div class="dcr"><span>'+E(w[k].f)+'</span><b>←</b><span>'+E(w[k].t)+'</span><button type="button" data-dx="'+E(k)+'">✕</button></div>').join('')+(Object.keys(w).length?'':'<p class="hn">لسه مفيش كلمات اتعلمت.</p>')+'</div>'+
+   (Object.keys(p).length?'<p class="hn">⏳ مستنية تتصلح مرة كمان: '+Object.keys(p).map(k=>E(p[k].f)+' ← '+E(p[k].t)).join(' · ')+'</p>':'')+
+   '<div class="dca"><input id="dc_f" placeholder="الكلمة اللي بتتسمع غلط"><input id="dc_t" placeholder="معناها الصح"><button type="button" class="bt" id="dc_go">➕ ضيف</button></div>';
+  box.querySelectorAll('[data-dx]').forEach(b=>b.onclick=async()=>{const n=JSON.parse(JSON.stringify(rec()));delete (n.w||{})[b.dataset.dx];n.mt=Date.now();await ENV.put(n);window.__dictUI(box)});
+  box.querySelector('#dc_go').onclick=async()=>{const f=box.querySelector('#dc_f').value.trim(),t=box.querySelector('#dc_t').value.trim();if(!f||!t)return;const n=JSON.parse(JSON.stringify(rec()));n.w=n.w||{};n.p=n.p||{};n.w[nz(f)]={f,t,by:ENV.me().name,at:Date.now()};n.mt=Date.now();await ENV.put(n);ENV.toast&&ENV.toast('📖 اتضافت');window.__dictUI(box)}};
+ if(!document.getElementById('dccss')){const st=document.createElement('style');st.id='dccss';st.textContent='.dcr{display:flex;align-items:center;gap:8px;padding:7px 10px;margin:4px 0;border-radius:11px;background:rgba(127,227,255,.08);font-size:14px}.dcr span{flex:1}.dcr b{color:#7fe3ff}.dcr button{display:grid;place-items:center;padding:0;line-height:1;flex:none;border:0;border-radius:9px;width:30px;height:30px;background:rgba(255,75,62,.85);color:#fff;font-weight:700}.dca{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}.dca .bt{grid-column:1/-1}.dca input{min-width:0}';document.head.appendChild(st)}
+})();
+(function(){if(typeof window.fixW==='function'&&!window.fixW.__d){const of=window.fixW;const f=t=>window.__dictApply(of(window.__dictApply(t)));f.__d=1;window.fixW=f}})();
 </script>
-<script>(function(){const CUR=12;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
-<!--RADARV:12-->
+<script>(function(){const CUR=13;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})</script>
+<style id="fit218">
+/* v13: الشاشة على قد طول التليفون — من غير سحب ولا هز يمين وشمال */
+html,body{overflow-x:hidden!important;max-width:100%}
+html body #main{display:flex!important;flex-direction:column!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain;height:100%!important;touch-action:manipulation}
+html body #main>*{flex:none!important}
+html body #main #rqd{margin-bottom:2px!important}
+html body #main #rqd .qdh{margin-bottom:5px}
+html body #main #rqd .qby{padding:9px 8px 13px}
+html body #main #rqd .qtg{row-gap:18px}
+html body #main #rqd .qbx{height:84px!important}
+html body #main #rqd .qmore{margin-top:16px;padding:9px}
+html body #main .hero{flex:1 1 0!important;min-height:72px!important;max-height:230px;height:auto!important;margin:0 -14px!important;padding:0!important;overflow:clip!important;overflow-y:visible!important;overflow-x:clip!important;container-type:size;justify-content:center!important}
+html body #main .hero .hr1,html body #main .hero .hr2,html body #main .hero .hsw,html body #main .hero .bl{pointer-events:none!important}
+html body #main .hero .micw3{width:min(110px,calc(100cqh - 24px))!important;height:min(110px,calc(100cqh - 24px))!important;margin:0 auto!important;flex:none}
+html body #main .hero .micw3 button{inset:4%!important}
+html body #main .hero .micw3 img{width:100%!important;height:100%!important}
+html body #main .hero .micw3 .w{inset:12%!important}
+html body #main .mhint{font-size:13px!important;margin:2px 0 0!important;line-height:1.3}
+html body #main .row3{margin:2px 0 4px!important;gap:10px!important}
+html body #main .row3 button{width:auto!important;flex:0 0 auto;font-size:12.5px!important}
+html body #main .row3 img{width:clamp(44px,7dvh,64px)!important;height:clamp(44px,7dvh,64px)!important}
+html body #main .g3{flex:1.7 1 0!important;min-height:120px;container-type:size;grid-template-rows:repeat(2,minmax(0,1fr))!important;align-items:center;justify-items:center;margin:0 0 4px!important;row-gap:6px!important}
+html body #main .g3 .t3{width:min(100%,calc(50cqh - 4px))!important;height:auto!important;aspect-ratio:1;font-size:clamp(10.5px,3.6cqh,13px)!important}
+html body #main .lanes{flex:none!important;height:clamp(78px,11dvh,112px)!important;margin-top:2px!important}
+html body #main .lane{padding:4px 6px!important;border-radius:16px!important}
+html body #main .lh{margin-bottom:2px!important;gap:7px!important}
+html body #main .lh img.av{width:30px!important;height:31px!important;border-radius:9px!important}
+html body #main .lh span{font-size:15px!important}
+</style>
 </body>
 </html>
+<!--RADARV:13-->
