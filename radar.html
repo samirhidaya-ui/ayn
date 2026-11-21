@@ -375,7 +375,7 @@ input,textarea,select{font-family:inherit;font-size:16px}
 const SB='https://xheznardudlbyarpdheq.supabase.co';
 const KEY='sb_publishable_HfeKs1-YGla0ROEcYK4k-w_heprkgij';
 const DOM='@ayn.app';
-const KINDS=['wop','veh','driver-rec','part','radarcfg','dict'];
+const KINDS=['wop','veh','driver-rec','part','supplier','radarcfg','dict','invoice','record','purchase','cfund','cfclose','tire','doc','wdoc','odo','yard','plate','pp','pq','pr','wshop','wjob','wpay','note','tamam','tamam-v','rd','mj','pmv','mev','bsnz','driver','invcfg'];
 const ALIAS={'sobhy':'m.sobhy','samir':'samir','saud':'saud'};
 const $=id=>document.getElementById(id);
 const E=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -431,7 +431,7 @@ async function applyRow(r){if(st.pend.has(r.id))return false;const i=items.findI
  const it=Object.assign({},r.data||{});it.id=r.id;it.kind=r.kind||it.kind;
  if(i>=0){if(JSON.stringify(items[i])===JSON.stringify(it))return false;items[i]=it}else items.push(it);await iPut(it);return true}
 async function pull(){if(busyP||!st.logged||!navigator.onLine)return;busyP=true;let ch=false;
- try{const wm=await mGet('wm');let newest=wm||'',off=0;
+ try{const KSIG=KINDS.join(',');if((await mGet('ksig'))!==KSIG){await mSet('wm','');await mSet('ksig',KSIG)}const wm=await mGet('wm');let newest=wm||'',off=0;
   for(;;){let p='items?select=id,kind,data,deleted,updated_at&kind=in.('+KINDS.join(',')+')&order=updated_at.asc,id.asc&limit=200&offset='+off;
    p+=wm?'&updated_at=gte.'+encodeURIComponent(wm):'&deleted=eq.false';
    const rows=await rest('GET',p)||[];for(const r of rows){if(await applyRow(r))ch=true;if(r.updated_at>newest)newest=r.updated_at}
@@ -1483,9 +1483,11 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
  /* ---------- اسأل: فهم سريع لأي طلب (عين + رادار) ---------- */
  function askIsQ(t){const q=nz(t);if(!q)return false;if(/^(صرفت|دفعت|استلمت|اشتريت|غيرنا|غيرت|ركبنا|ركبت|خرج|طلع من|اتعمل|اتغير|خلصت|خلصنا)/.test(q))return false;
   if(/[؟?]\s*$/.test(t))return true;
+  if(/(بيانات|معلومات|رقم|ارقام|جوال|تلفون|تليفون|موبايل|قائمه|ليسته|تفاصيل)/.test(q)&&/(مورد|سواق|سائق|عربي|سيار|راس|سطح|ناقل|تيدر|ورش|قطع|كفر)/.test(q))return true;
   if(/^(كم|كام|فين|وين|مين|ايه|هل|اعرض|وريني|ورني|اظهر|عدد|قائمه|ليسته|رصيد|بيانات|معلومات|رقم|جوال|تلفون)\s/.test(q))return true;
-  return /^(عايز|عاوز|ابغي|ابغا|ابي|اديني|هات|هاتلي|هات لي|جيب|جيبلي|جيب لي|طلعلي|طلع لي|افتح|افتحلي|افتح لي|ممكن|شوف|شوفلي)\s/.test(q)&&/(بيانات|معلومات|رقم|جوال|تلفون|تليفون|موبايل|تفاصيل|تاريخ|سجل|حاله|عربيه|سياره|راس|سطحه|ناقله|تريلا|سواق|سائق|مورد|موردين|تقرير|تعليمات|كفر|مخزون|رصيد|قائمه|قطع|قطعه)/.test(q)}
- const ASTOP=/^(عايز|عاوز|ابغي|ابغا|ابي|اديني|هات|هاتلي|لي|جيب|جيبلي|طلعلي|طلع|افتح|افتحلي|ممكن|شوف|شوفلي|بيانات|معلومات|رقم|ارقام|جوال|تلفون|تليفون|موبايل|تفاصيل|السواق|سواق|السائق|سائق|السواقين|بتاع|بتاعه|بتاعت|اللي|الي|عندنا|عندي|كام|كم|ايه|مين|فين|في|من|و|عن|يا|ده|دي|اسمه|اسمو|الاخ|اخونا|فلان)$/;
+  return /^(عايز|عاوز|محتاج|محتاجين|ابغى|عطني|اعطني|لو سمحت|من فضلك|ابغي|ابغا|ابي|اديني|هات|هاتلي|هات لي|جيب|جيبلي|جيب لي|طلعلي|طلع لي|افتح|افتحلي|افتح لي|ممكن|شوف|شوفلي)\s/.test(q)&&/(بيانات|معلومات|رقم|جوال|تلفون|تليفون|موبايل|تفاصيل|تاريخ|سجل|حاله|عربيه|سياره|راس|سطحه|ناقله|تريلا|سواق|سائق|مورد|موردين|تقرير|تعليمات|كفر|مخزون|رصيد|قائمه|قطع|قطعه)/.test(q)}
+ const TOK=q=>q.replace(/[؟?،,.\-]/g,' ').split(/\s+/).map(w=>w.replace(/[^\u0621-\u064Aa-z0-9]/gi,'')).filter(Boolean);
+ const ASTOP=/^(محتاج|محتاجين|ابغى|عطني|اعطني|لو|سمحت|فضلك|نفسي|بس|كده|عايز|عاوز|ابغي|ابغا|ابي|اديني|هات|هاتلي|لي|جيب|جيبلي|طلعلي|طلع|افتح|افتحلي|ممكن|شوف|شوفلي|بيانات|معلومات|رقم|ارقام|جوال|تلفون|تليفون|موبايل|تفاصيل|السواق|سواق|السائق|سائق|السواقين|بتاع|بتاعه|بتاعت|اللي|الي|عندنا|عندي|كام|كم|ايه|مين|فين|في|من|و|عن|يا|ده|دي|اسمه|اسمو|الاخ|اخونا|فلان)$/;
  function askAnswer(t){const q=nz(t),d=dg(t),I=ALL();const veh=I.filter(x=>x.kind==='veh'&&!x.deleted),DR=I.filter(x=>x.kind==='driver-rec'&&!x.deleted);
   const plateOf=()=>{if(d.length<3||/(موديل|سنه)/.test(q))return '';const v=veh.find(x=>dg(x.plate)===d)||veh.find(x=>dg(x.plate).endsWith(d));if(v)return v.plate;const o=W().find(x=>dg(x.plate)===d);return o?o.plate:''};
   const drvCard=r=>{const v=veh.find(x=>x.driverId===r.id);const p=r.plate||(v&&v.plate)||'';return `<div class="cd8" style="display:flex;align-items:center;gap:9px;padding:10px;border-radius:18px">${T3('user',46,'white',2.1)}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;color:#F8F1E4;font-weight:700">${E(r.name||'')}</span><span style="display:flex;gap:6px;align-items:center">${p?`<button type="button" class="pt" data-car="${E(p)}">${PLT(p,52,30,12)}</button>`:''}<span class="mt mu" dir="ltr" style="font-size:13px;font-weight:600">${E(r.phone||'—')}</span></span>${r.nat||r.iqama?`<span class="mu" style="font-size:12px">${E([r.nat,r.iqama].filter(Boolean).join(' · '))}</span>`:''}</div>${callBtns(r.phone,50)}</div>`};
@@ -1493,7 +1495,7 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
   /* سواق عربية معينة */
   if(isDrv&&d.length>=3){const p=plateOf();const r=drvRec(p||d);if(r)return{title:'سواق '+(p||d),body:drvCard(r)};const n2=(W().find(o=>dg(o.plate)===d&&o.driver)||{}).driver;if(n2)return{title:'سواق '+(p||d),body:drvCard({name:n2,plate:p||d,phone:''})+'<div class="mu" style="font-size:12.5px;text-align:center">رقم جواله مش متسجّل في عين — ضيفه من صفحة السواقين في عين</div>'};return{title:'سواق '+d,body:'<div class="emp8">مفيش سواق متسجّل على العربية دي</div>'}}
   /* سواق بالاسم */
-  if(isDrv){const kw=q.replace(/[؟?،,.]/g,' ').split(/\s+/).filter(w=>w&&!ASTOP.test(w)).map(w=>w.replace(/^ال/,''));
+  if(isDrv){const kw=TOK(q).filter(w=>!ASTOP.test(w)).map(w=>w.replace(/^ال/,'')).filter(w=>w.length>1);
    if(!kw.length)return{open:()=>window.__drivers()};
    const L=DR.filter(r=>{const h=nz(r.name||'');return kw.every(w=>h.includes(w))});const L2=L.length?L:DR.filter(r=>{const h=nz(r.name||'');return kw.some(w=>w.length>2&&h.includes(w))});
    if(!L2.length){const nm=[...new Set(W().map(o=>o.driver).filter(Boolean))].filter(n=>{const h=nz(n);return kw.some(w=>w.length>2&&h.includes(w))});if(nm.length)return{title:'السواق: '+kw.join(' '),body:nm.slice(0,8).map(n=>{const o=W().filter(x=>x.driver===n&&x.plate).sort((a,b)=>when(b)-when(a))[0];return drvCard({name:n,plate:o?o.plate:'',phone:''})}).join('')+'<div class="mu" style="font-size:12.5px;text-align:center">رقم جواله مش متسجّل في عين</div>',foot:'drv'}}
@@ -1504,7 +1506,12 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
   if(/(تعليمات|المطلوب|مطلوب)/.test(q))return{open:()=>insPage(),h:'📌 بفتح لك التعليمات…'};
   if(/(السواقين|سواقين|كل السواق)/.test(q))return{open:()=>window.__drivers(),h:'👥 بفتح لك السواقين…'};
   if(/تقرير/.test(q)&&(can('pdf')||can('xls')))return{open:()=>repAsk(),h:'📄 بفتح لك التقارير…'};
-  if(/مورد/.test(q)){const SP=I.filter(x=>x.kind==='supplier'&&!x.deleted);if(!SP.length)return{title:'الموردين',body:'<div class="emp8">بيانات الموردين موجودة في عين عند سمير</div>'};return null}
+  if(/مورد/.test(q)){const SP=I.filter(x=>x.kind==='supplier'&&!x.deleted);if(!SP.length)return{title:'الموردين',body:'<div class="emp8">لسه بيانات الموردين ماوصلتش هنا — هتظهر أول ما سمير يفتح عين مرة</div>'};
+   const kw=TOK(q).filter(w=>!ASTOP.test(w)&&!/^(ال)?(مورد|موردين|موردو|الموردين|بيانات|ارقام|قائمه|ليسته|كلهم|كل|جميع|بتاعتي|بتاعتنا|بتوعنا)$/.test(w)).map(w=>w.replace(/^ال/,'')).filter(w=>w.length>1);
+   const hit=x=>{const h=nz([x.name,x.field,x.items,x.city,x.note,x.contact].join(' '));return kw.every(w=>h.includes(w)||(w.length>3&&h.includes(w.slice(0,-1))))};
+   let L=kw.length?SP.filter(hit):SP,note='';if(!L.length){note=`<div class="mu" style="font-size:13px">مفيش مورد لـ «${E(kw.join(' '))}» — دي كل الموردين:</div>`;L=SP}
+   const card=x=>`<div class="cd8" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:18px">${PI('parts',44)}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:3px"><span style="font-size:15.5px;color:#F8F1E4;font-weight:700">${E(String(x.name||'').split(' | ')[0])}</span>${x.field||x.city?`<span class="mu" style="font-size:12.5px">${E([x.field,x.city].filter(Boolean).join(' · '))}</span>`:''}${x.contact?`<span class="mu" style="font-size:12.5px">👤 ${E(x.contact)}</span>`:''}${x.phone?`<span class="mt mu" dir="ltr" style="font-size:12.5px;text-align:right">${E(x.phone)}</span>`:''}</div>${callBtns(x.phone,46)}</div>`;
+   return{title:'الموردين'+(kw.length&&note===''?' — '+kw.join(' '):'')+' ('+L.length+')',body:note+L.map(card).join('')}}
   if(/(قطع|قطعه|مخزون|رصيد)/.test(q)){const P=I.filter(x=>x.kind==='part'&&!x.deleted);const kw=q.replace(/[؟?،,.]/g,' ').split(/\s+/).filter(w=>w&&!ASTOP.test(w)&&!/^(قطع|قطعه|غيار|مخزون|رصيد|المستودع|مستودع)$/.test(w)).map(w=>w.replace(/^ال/,''));
    if(P.length&&kw.length){const L=P.filter(x=>{const h=nz([x.name,x.code,x.pn,x.cat].join(' '));return kw.every(w=>h.includes(w))});
     return{title:'قطع: '+kw.join(' '),body:L.length?L.slice(0,15).map(x=>`<div class="cd8" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px">${PI('parts',40)}<span style="flex:1;font-size:15px;color:#F8F1E4">${E(x.name||'')}${x.code||x.pn?'<br><span class="mu mt" style="font-size:12px">'+E(x.code||x.pn)+'</span>':''}</span><b class="mt" style="font-size:20px;color:#E9D3A0">${E(x.qty!=null?x.qty:x.q!=null?x.q:x.stock!=null?x.stock:'')}</b></div>`).join(''):'<div class="emp8">مالقيتش القطعة دي</div>'}}}
@@ -1550,7 +1557,7 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
 })();
 (function(){if(typeof window.fixW==='function'&&!window.fixW.__d){const of=window.fixW;const f=t=>window.__dictApply(of(window.__dictApply(t)));f.__d=1;window.fixW=f}})();
 </script>
-<script>(function(){const CUR=19;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
+<script>(function(){const CUR=22;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})</script>
 <style id="fit218">
 /* v13: الشاشة على قد طول التليفون — من غير سحب ولا هز يمين وشمال */
@@ -1583,4 +1590,4 @@ html body #main .lh span{font-size:15px!important}
 </style>
 </body>
 </html>
-<!--RADARV:19-->
+<!--RADARV:22-->
