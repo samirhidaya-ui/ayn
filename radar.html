@@ -567,6 +567,7 @@ function openCapture(){
  sheet('<h3>تسجيل جديد <button onclick="rClose()">×</button></h3><div class="thumbs" id="cth">'+cap.photos.map(p=>'<img src="'+p+'">').join('')+'</div>'+inRow()+'<textarea id="ctx" placeholder="اكتب أو قول اللي اتعمل… رقم العربية، القطع والكميات، والشغل، أو اللي ناقص">'+E(cap.text)+'</textarea><button class="btn" id="cgo">حلّل وراجع ←</button>');
  $('ctx').oninput=e=>cap.text=e.target.value;bindIn($('shb'),()=>$('ctx'),d=>{cap.photos.push(d);$('cth').innerHTML=cap.photos.map(p=>'<img src="'+p+'">').join('')});$('cgo').onclick=analyze}
 async function analyze(){const text=(cap.text||'').trim();if(!text&&!cap.photos.length){toast('اكتب أو سجّل حاجة الأول');return}
+ if(text&&!cap.photos.length&&window.__askTry&&window.__askTry(text))return;
  const b=$('cgo');if(b){b.disabled=true;b.innerHTML='<span class="busy"></span> بحلّل…'}
  let r=null,via='local';
  if(text&&aiKey()&&navigator.onLine){try{r=await aiParse(text);via='ai'}catch(_){r=null}}
@@ -1479,6 +1480,40 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
   h+='<div class="rh2">4) التعليمات وتعليمات بكرة <small>مين قالها — ومين استلمها</small></div>'+tab([['م',4],['العربية',9],['التعليمات',41],['قالها',12],['الساعة',11],['الحالة',23]],R.ins.map((o,i)=>{const op=isOpen(o);return tr([[i+1,'n'],[o.plate?PL(o.plate):'الكل','c'],[(o.urg?'🔴 ':'')+E(what(o))+(o.ts<D0?'<span class="t" style="color:#a33">من يوم '+dshort(o.ts)+'</span>':'')],[E(nm(o.user)),'c'],[hm(o.ts),'c'],[`<span class="pill" style="background:${!op?'#dff5e8;color:#0f6b38':o.ack?'#e3f0fb;color:#185fa5':'#fff1d6;color:#8a5a00'}">${E(insSt(o))}</span>`,'c']])}));
   if(R.short.length)h+='<div class="rh2">5) نواقص المستودع</div>'+tab([['م',4],['الصنف',66],['قالها',15],['الساعة',15]],R.short.map((o,i)=>tr([[i+1,'n'],[E(what(o))],[E(nm(o.user)),'c'],[hm(when(o)),'c']])));
   return h+sigHTML(sig)+'<div class="brandline">RADAR · AYN by Hidaya</div></div>'};
+ /* ---------- اسأل: فهم سريع لأي طلب (عين + رادار) ---------- */
+ function askIsQ(t){const q=nz(t);if(!q)return false;if(/^(صرفت|دفعت|استلمت|اشتريت|غيرنا|غيرت|ركبنا|ركبت|خرج|طلع من|اتعمل|اتغير|خلصت|خلصنا)/.test(q))return false;
+  if(/[؟?]\s*$/.test(t))return true;
+  if(/^(كم|كام|فين|وين|مين|ايه|هل|اعرض|وريني|ورني|اظهر|عدد|قائمه|ليسته|رصيد|بيانات|معلومات|رقم|جوال|تلفون)\s/.test(q))return true;
+  return /^(عايز|عاوز|ابغي|ابغا|ابي|اديني|هات|هاتلي|هات لي|جيب|جيبلي|جيب لي|طلعلي|طلع لي|افتح|افتحلي|افتح لي|ممكن|شوف|شوفلي)\s/.test(q)&&/(بيانات|معلومات|رقم|جوال|تلفون|تليفون|موبايل|تفاصيل|تاريخ|سجل|حاله|عربيه|سياره|راس|سطحه|ناقله|تريلا|سواق|سائق|مورد|موردين|تقرير|تعليمات|كفر|مخزون|رصيد|قائمه|قطع|قطعه)/.test(q)}
+ const ASTOP=/^(عايز|عاوز|ابغي|ابغا|ابي|اديني|هات|هاتلي|لي|جيب|جيبلي|طلعلي|طلع|افتح|افتحلي|ممكن|شوف|شوفلي|بيانات|معلومات|رقم|ارقام|جوال|تلفون|تليفون|موبايل|تفاصيل|السواق|سواق|السائق|سائق|السواقين|بتاع|بتاعه|بتاعت|اللي|الي|عندنا|عندي|كام|كم|ايه|مين|فين|في|من|و|عن|يا|ده|دي|اسمه|اسمو|الاخ|اخونا|فلان)$/;
+ function askAnswer(t){const q=nz(t),d=dg(t),I=ALL();const veh=I.filter(x=>x.kind==='veh'&&!x.deleted),DR=I.filter(x=>x.kind==='driver-rec'&&!x.deleted);
+  const plateOf=()=>{if(d.length<3||/(موديل|سنه)/.test(q))return '';const v=veh.find(x=>dg(x.plate)===d)||veh.find(x=>dg(x.plate).endsWith(d));if(v)return v.plate;const o=W().find(x=>dg(x.plate)===d);return o?o.plate:''};
+  const drvCard=r=>{const v=veh.find(x=>x.driverId===r.id);const p=r.plate||(v&&v.plate)||'';return `<div class="cd8" style="display:flex;align-items:center;gap:9px;padding:10px;border-radius:18px">${T3('user',46,'white',2.1)}<div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:4px"><span style="font-size:16px;color:#F8F1E4;font-weight:700">${E(r.name||'')}</span><span style="display:flex;gap:6px;align-items:center">${p?`<button type="button" class="pt" data-car="${E(p)}">${PLT(p,52,30,12)}</button>`:''}<span class="mt mu" dir="ltr" style="font-size:13px;font-weight:600">${E(r.phone||'—')}</span></span>${r.nat||r.iqama?`<span class="mu" style="font-size:12px">${E([r.nat,r.iqama].filter(Boolean).join(' · '))}</span>`:''}</div>${callBtns(r.phone,50)}</div>`};
+  const isDrv=/(سواق|سائق|السواق|السائق|درايفر)/.test(q);
+  /* سواق عربية معينة */
+  if(isDrv&&d.length>=3){const p=plateOf();const r=drvRec(p||d);if(r)return{title:'سواق '+(p||d),body:drvCard(r)};const n2=(W().find(o=>dg(o.plate)===d&&o.driver)||{}).driver;if(n2)return{title:'سواق '+(p||d),body:drvCard({name:n2,plate:p||d,phone:''})+'<div class="mu" style="font-size:12.5px;text-align:center">رقم جواله مش متسجّل في عين — ضيفه من صفحة السواقين في عين</div>'};return{title:'سواق '+d,body:'<div class="emp8">مفيش سواق متسجّل على العربية دي</div>'}}
+  /* سواق بالاسم */
+  if(isDrv){const kw=q.replace(/[؟?،,.]/g,' ').split(/\s+/).filter(w=>w&&!ASTOP.test(w)).map(w=>w.replace(/^ال/,''));
+   if(!kw.length)return{open:()=>window.__drivers()};
+   const L=DR.filter(r=>{const h=nz(r.name||'');return kw.every(w=>h.includes(w))});const L2=L.length?L:DR.filter(r=>{const h=nz(r.name||'');return kw.some(w=>w.length>2&&h.includes(w))});
+   if(!L2.length){const nm=[...new Set(W().map(o=>o.driver).filter(Boolean))].filter(n=>{const h=nz(n);return kw.some(w=>w.length>2&&h.includes(w))});if(nm.length)return{title:'السواق: '+kw.join(' '),body:nm.slice(0,8).map(n=>{const o=W().filter(x=>x.driver===n&&x.plate).sort((a,b)=>when(b)-when(a))[0];return drvCard({name:n,plate:o?o.plate:'',phone:''})}).join('')+'<div class="mu" style="font-size:12.5px;text-align:center">رقم جواله مش متسجّل في عين</div>',foot:'drv'}}
+   return{title:'السواق: '+kw.join(' '),body:L2.length?L2.slice(0,10).map(drvCard).join(''):'<div class="emp8">مالقيتش سواق بالاسم ده — جرّب اسم تاني أو افتح قايمة السواقين</div>',foot:'drv'}}
+  /* عربية */
+  if(d.length>=3&&!/(مورد|مقاس|موديل|سنه|ريال|لتر)/.test(q)){const p=plateOf();if(p)return{open:()=>carPage(p),h:'🚛 بفتح لك صفحة العربية '+E(p)+'…',p};return null}
+  if(/(كفر|كفرات|كاوتش)/.test(q)&&/(مخزون|رصيد|كام|كم|عندنا|موجود|باقي|فاضل)/.test(q))return{open:()=>tirePage(),h:'🛞 بفتح لك مخزون الكفرات…'};
+  if(/(تعليمات|المطلوب|مطلوب)/.test(q))return{open:()=>insPage(),h:'📌 بفتح لك التعليمات…'};
+  if(/(السواقين|سواقين|كل السواق)/.test(q))return{open:()=>window.__drivers(),h:'👥 بفتح لك السواقين…'};
+  if(/تقرير/.test(q)&&(can('pdf')||can('xls')))return{open:()=>repAsk(),h:'📄 بفتح لك التقارير…'};
+  if(/مورد/.test(q)){const SP=I.filter(x=>x.kind==='supplier'&&!x.deleted);if(!SP.length)return{title:'الموردين',body:'<div class="emp8">بيانات الموردين موجودة في عين عند سمير</div>'};return null}
+  if(/(قطع|قطعه|مخزون|رصيد)/.test(q)){const P=I.filter(x=>x.kind==='part'&&!x.deleted);const kw=q.replace(/[؟?،,.]/g,' ').split(/\s+/).filter(w=>w&&!ASTOP.test(w)&&!/^(قطع|قطعه|غيار|مخزون|رصيد|المستودع|مستودع)$/.test(w)).map(w=>w.replace(/^ال/,''));
+   if(P.length&&kw.length){const L=P.filter(x=>{const h=nz([x.name,x.code,x.pn,x.cat].join(' '));return kw.every(w=>h.includes(w))});
+    return{title:'قطع: '+kw.join(' '),body:L.length?L.slice(0,15).map(x=>`<div class="cd8" style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:16px">${PI('parts',40)}<span style="flex:1;font-size:15px;color:#F8F1E4">${E(x.name||'')}${x.code||x.pn?'<br><span class="mu mt" style="font-size:12px">'+E(x.code||x.pn)+'</span>':''}</span><b class="mt" style="font-size:20px;color:#E9D3A0">${E(x.qty!=null?x.qty:x.q!=null?x.q:x.stock!=null?x.stock:'')}</b></div>`).join(''):'<div class="emp8">مالقيتش القطعة دي</div>'}}}
+  return null}
+ function askShow(t,r){if(r.open){r.open();return}
+  const ov=page('twp','🔎 '+E(r.title||'النتيجة'),`<div class="mu" style="font-size:13.5px">«${E(t)}»</div>`+r.body,r.foot==='drv'?`<button type="button" class="b8 drk" id="askd" style="flex:1;min-height:56px;border-radius:18px;font-size:15px">${T3('steer',30,'gold',2.2)}كل السواقين</button>`:'');
+  ov.querySelectorAll('[data-car]').forEach(b=>b.onclick=()=>{ov.remove();carPage(b.dataset.car)});const a=ov.querySelector('#askd');if(a)a.onclick=()=>{ov.remove();window.__drivers()}}
+ window.__askIsQ=askIsQ;window.__askTry=function(t){try{if(!askIsQ(t))return false;const r=askAnswer(t);if(!r)return false;try{window.rClose&&window.rClose()}catch(_){}twCss();askShow(t,r);return true}catch(e){return false}};
+ window.__askAns=function(t){try{const r=askAnswer(t);if(!r)return null;if(r.open)return{h:r.h||'بفتح…',go:()=>{twCss();r.open()}};return{h:'🔎 بفتح لك النتيجة…',go:()=>{twCss();askShow(t,r)},gol:'افتح'}}catch(_){return null}};
 
  setInterval(()=>{try{draw(false)}catch(_){}},1200);
  setInterval(()=>{try{if(document.visibilityState==='visible'&&document.getElementById('lgw')&&ENV.sync&&!SRC)ENV.sync()}catch(_){}},6000);
@@ -1515,7 +1550,7 @@ body:has(#lgw.tw) #main,#fa:has(#lgw.tw){background:radial-gradient(120% 70% at 
 })();
 (function(){if(typeof window.fixW==='function'&&!window.fixW.__d){const of=window.fixW;const f=t=>window.__dictApply(of(window.__dictApply(t)));f.__d=1;window.fixW=f}})();
 </script>
-<script>(function(){const CUR=18;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
+<script>(function(){const CUR=19;let busy=0;async function chk(){if(busy||!navigator.onLine||!/^https?:$/.test(location.protocol))return;busy=1;try{const r=await fetch('radar.html?_='+Date.now(),{cache:'reload',headers:{Range:'bytes=-700'}});const t=await r.text();const m=t.match(/RADARV:(\d+)/);if(m&&+m[1]>CUR&&!document.getElementById('rupd')){const b=document.createElement('button');b.id='rupd';b.type='button';b.textContent='🔄 يوجد إصدار جديد ('+m[1]+') — اضغط للتحديث';b.style.cssText='position:fixed;top:calc(env(safe-area-inset-top,0px) + 8px);left:10px;right:10px;z-index:99999;padding:14px;border:0;border-radius:16px;font:700 15px "Readex Pro",sans-serif;color:#062a1c;background:linear-gradient(180deg,#fff3c4,#d4a540);box-shadow:0 6px 0 #7a5206,0 10px 20px rgba(0,0,0,.5)';b.onclick=()=>location.replace('radar.html?u='+Date.now());document.body.appendChild(b)}}catch(_){}busy=0}addEventListener('load',()=>setTimeout(chk,2500));document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,600000)})();</script>
 <script>if('serviceWorker' in navigator)addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{})})</script>
 <style id="fit218">
 /* v13: الشاشة على قد طول التليفون — من غير سحب ولا هز يمين وشمال */
@@ -1548,4 +1583,4 @@ html body #main .lh span{font-size:15px!important}
 </style>
 </body>
 </html>
-<!--RADARV:18-->
+<!--RADARV:19-->
